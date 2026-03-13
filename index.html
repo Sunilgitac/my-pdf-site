@@ -39,7 +39,7 @@
 
             try {
                 // This connects to your "Brain" running at 127.0.0.1:8000
-                const response = await fetch('http://127.0.0.1:8000/convert/jpg-to-pdf', {
+                const response = await fetch('https://my-pdf-site-production.up.railway.app/convert/jpg-to-pdf', {
                     method: 'POST',
                     body: formData
                 });
