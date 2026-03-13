@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My PDF Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full">
+        <h1 class="text-3xl font-bold text-indigo-600 mb-4">JPG to PDF</h1>
+        <p class="text-gray-600 mb-6">Select a JPG image to convert it into a PDF instantly.</p>
+
+        <input type="file" id="imageInput" accept=".jpg,.jpeg" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+
+        <button onclick="uploadAndConvert()" id="convertBtn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 w-full transition">
+            Convert to PDF
+        </button>
+
+        <p id="status" class="mt-4 text-sm text-gray-500"></p>
+    </div>
+
+    <script>
+        async function uploadAndConvert() {
+            const fileInput = document.getElementById('imageInput');
+            const status = document.getElementById('status');
+            const btn = document.getElementById('convertBtn');
+
+            if (fileInput.files.length === 0) {
+                alert("Please select a JPG file first!");
+                return;
+            }
+
+            status.innerText = "Converting... please wait.";
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                // This connects to your "Brain" running at 127.0.0.1:8000
+                const response = await fetch('http://127.0.0.1:8000/convert/jpg-to-pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "my_converted_file.pdf";
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    status.innerText = "Success! Your PDF is downloaded.";
+                } else {
+                    status.innerText = "Error: Conversion failed.";
+                }
+            } catch (error) {
+                console.error(error);
+                status.innerText = "Error: Could not connect to the server.";
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        }
+    </script>
+</body>
+</html>
