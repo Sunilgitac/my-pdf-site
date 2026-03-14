@@ -2,8 +2,10 @@
 nixPkgs = [
     "python311", 
     "libreoffice-bin",
+    "pango",
     "cairo",
-    "pkg-config"
+    "fontconfig",
+    "glib"
 ]
 
 [variables]
