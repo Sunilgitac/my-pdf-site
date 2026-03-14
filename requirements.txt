@@ -3,5 +3,4 @@ uvicorn
 pymupdf==1.23.9
 python-multipart
 pypdf
-xhtml2pdf
-# cache-breaker-v2
+xhtml2pdf==0.2.11
