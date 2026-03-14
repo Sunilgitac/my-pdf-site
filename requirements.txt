@@ -3,4 +3,5 @@ uvicorn
 pymupdf
 python-multipart
 pypdf
-xhtml2pdf
+xhtml2pdf==0.2.11
+reportlab==3.6.13
