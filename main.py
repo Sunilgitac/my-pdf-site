@@ -4,6 +4,8 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import uuid
+from typing import List
+from pypdf import PdfReader, PdfWriter
 
 app = FastAPI()
 
@@ -19,6 +21,7 @@ def remove_file(path: str):
     if os.path.exists(path):
         os.remove(path)
 
+# --- EXISTING: JPG TO PDF ---
 @app.post("/convert/jpg-to-pdf")
 async def convert_image(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     unique_id = str(uuid.uuid4())
@@ -40,14 +43,49 @@ async def convert_image(background_tasks: BackgroundTasks, file: UploadFile = Fi
     doc.save(pdf_path)
     doc.close()
 
-    # 1. Delete the input image immediately
     os.remove(img_path)
-
-    # 2. Tell the server to delete the PDF ONLY AFTER the user downloads it
     background_tasks.add_task(remove_file, pdf_path)
 
     return FileResponse(pdf_path, filename="converted.pdf")
 
+# --- NEW: MERGE PDF ---
+@app.post("/merge-pdf")
+async def merge_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+    merger = PdfWriter()
+    
+    for file in files:
+        # pypdf can read the file stream directly
+        merger.append(file.file)
+    
+    output_path = f"merged_{uuid.uuid4()}.pdf"
+    
+    with open(output_path, "wb") as f:
+        merger.write(f)
+    merger.close()
+    
+    background_tasks.add_task(remove_file, output_path)
+    return FileResponse(output_path, filename="merged_document.pdf")
+
+# --- NEW: SPLIT PDF (Extracts Page 1) ---
+@app.post("/split-pdf")
+async def split_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    reader = PdfReader(file.file)
+    writer = PdfWriter()
+    
+    # Adding the first page as a starting feature
+    if len(reader.pages) > 0:
+        writer.add_page(reader.pages[0])
+    
+    output_path = f"split_{uuid.uuid4()}.pdf"
+    
+    with open(output_path, "wb") as f:
+        writer.write(f)
+        
+    background_tasks.add_task(remove_file, output_path)
+    return FileResponse(output_path, filename="split_page_1.pdf")
+
 if __name__ == "__main__":
     import uvicorn
+    # Note: On Railway, the Procfile handles the port, 
+    # but this remains for your local testing.
     uvicorn.run(app, host="127.0.0.1", port=8000)
