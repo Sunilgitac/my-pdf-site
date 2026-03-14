@@ -1,3 +1,4 @@
+# Version 2.0 - Multi-tool
 import fitz
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks
 from fastapi.responses import FileResponse
