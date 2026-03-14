@@ -10,6 +10,30 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pypdf import PdfReader, PdfWriter
 
+# ... (all your imports) ...
+
+app = FastAPI(title="PDF Suite API")
+
+# Add this to see all registered routes on startup
+@app.on_event("startup")
+def startup_event():
+    for route in app.routes:
+        if hasattr(route, "path"):
+            logger.info(f"Route registered: {route.path}")
+
+@app.get("/")
+async def root():
+    return {"message": "API is running. Check /health for status."}
+
+# Ensure these exact paths exist:
+@app.post("/convert/jpg-to-pdf")
+async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    # ... your code ...
+
+@app.post("/convert/office-to-pdf")
+async def office_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    # ... your code ...
+
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdf-suite")
