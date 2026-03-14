@@ -5,8 +5,11 @@ nixPkgs = [
     "pango",
     "cairo",
     "fontconfig",
-    "glib"
+    "glib",
+    "gobject-introspection"
 ]
 
 [variables]
 PYTHONPATH = "/app"
+# This tells the system exactly where to find libgobject-2.0.so
+LD_LIBRARY_PATH = "/nix/var/nix/profiles/default/lib"
