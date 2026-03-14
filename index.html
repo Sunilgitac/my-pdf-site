@@ -8,20 +8,52 @@
     <style>
         .tool-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
         .hidden { display: none; }
+/* Dark Mode Colors */
+        .dark-mode { background-color: #121212; color: #ffffff; }
+        .dark-mode .bg-white { background-color: #1e1e1e; color: #ffffff; border-color: #333; }
+        .dark-mode .text-gray-900 { color: #f3f4f6; }
+        .dark-mode .text-gray-600, .dark-mode .text-gray-500 { color: #9ca3af; }
+        .dark-mode .bg-gray-50 { background-color: #121212; }
+        .dark-mode .tool-card { border-top-color: #6366f1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                icon.innerText = "☀️"; // Sun icon for dark mode
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.innerText = "🌙"; // Moon icon for light mode
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Apply saved theme preference on page load
+        if (localStorage.getItem('theme') === 'dark') {
+            toggleDarkMode();
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans">
 
-    <nav class="bg-indigo-600 p-4 text-white flex justify-between items-center shadow-lg mb-8">
+   <nav class="bg-indigo-600 p-4 text-white flex justify-between items-center shadow-lg mb-8">
         <div class="font-bold text-2xl tracking-tight cursor-pointer" onclick="showHome()">PDF Suite</div>
-        <div class="relative group">
-            <button class="bg-indigo-700 px-5 py-2 rounded-full font-medium hover:bg-indigo-800 transition flex items-center gap-2">
-                Tools <span class="text-xs">▼</span>
+        <div class="flex items-center">
+            <button onclick="toggleDarkMode()" class="mr-4 p-2 rounded-full hover:bg-indigo-700 transition text-xl" title="Toggle Dark Mode">
+                <span id="themeIcon">🌙</span>
             </button>
-            <div class="absolute right-0 mt-2 w-56 bg-white text-gray-800 rounded-xl shadow-2xl hidden group-hover:block z-50 overflow-hidden border border-gray-100">
-                <a href="#" onclick="showTool('jpg-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">🖼️ JPG to PDF</a>
-                <a href="#" onclick="showTool('merge-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">📑 Merge PDF</a>
-                <a href="#" onclick="showTool('split-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition">✂️ Split PDF</a>
+            
+            <div class="relative group">
+                <button class="bg-indigo-700 px-5 py-2 rounded-full font-medium hover:bg-indigo-800 transition flex items-center gap-2">
+                    Tools <span class="text-xs">▼</span>
+                </button>
+                <div class="absolute right-0 mt-2 w-56 bg-white text-gray-800 rounded-xl shadow-2xl hidden group-hover:block z-50 overflow-hidden border border-gray-100">
+                    <a href="#" onclick="showTool('jpg-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">🖼️ JPG to PDF</a>
+                    <a href="#" onclick="showTool('merge-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">📑 Merge PDF</a>
+                    <a href="#" onclick="showTool('split-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition">✂️ Split PDF</a>
+                </div>
             </div>
         </div>
     </nav>
