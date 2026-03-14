@@ -1,117 +1,206 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My PDF Converter</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Suite - All-in-One PDF Tools</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tool-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        .hidden { display: none; }
+    </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+<body class="bg-gray-50 min-h-screen font-sans">
 
-    <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full">
-    <h1 class="text-3xl font-bold text-indigo-600 mb-4">JPG to PDF</h1>
-    <p class="text-gray-600 mb-6">Select a JPG image to convert it into a PDF instantly.</p>
-
-    <input type="file" id="imageInput" accept=".jpg,.jpeg" class="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-
-    <button onclick="uploadAndConvert()" id="convertBtn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 w-full transition">
-        Convert to PDF
-    </button>
-
-    <div id="progressContainer" class="mt-6 hidden">
-        <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div id="progressBar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+    <nav class="bg-indigo-600 p-4 text-white flex justify-between items-center shadow-lg mb-8">
+        <div class="font-bold text-2xl tracking-tight cursor-pointer" onclick="showHome()">PDF Suite</div>
+        <div class="relative group">
+            <button class="bg-indigo-700 px-5 py-2 rounded-full font-medium hover:bg-indigo-800 transition flex items-center gap-2">
+                Tools <span class="text-xs">▼</span>
+            </button>
+            <div class="absolute right-0 mt-2 w-56 bg-white text-gray-800 rounded-xl shadow-2xl hidden group-hover:block z-50 overflow-hidden border border-gray-100">
+                <a href="#" onclick="showTool('jpg-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">🖼️ JPG to PDF</a>
+                <a href="#" onclick="showTool('merge-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">📑 Merge PDF</a>
+                <a href="#" onclick="showTool('split-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition">✂️ Split PDF</a>
+            </div>
         </div>
-        <p id="status" class="mt-2 text-sm text-gray-500 italic font-medium">Preparing your file...</p>
+    </nav>
+
+    <div class="container mx-auto px-4">
+        
+        <div id="homePage" class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <h1 class="text-4xl font-extrabold text-gray-900 mb-2">What would you like to do?</h1>
+                <p class="text-gray-600">Fast, secure, and easy-to-use PDF tools right in your browser.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div onclick="showTool('jpg-to-pdf')" class="tool-card bg-white p-8 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-indigo-500">
+                    <div class="text-5xl mb-4">🖼️</div>
+                    <h3 class="font-bold text-xl mb-2">JPG to PDF</h3>
+                    <p class="text-sm text-gray-500">Convert your images into professional PDF files.</p>
+                </div>
+
+                <div onclick="showTool('merge-pdf')" class="tool-card bg-white p-8 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-green-500">
+                    <div class="text-5xl mb-4">📑</div>
+                    <h3 class="font-bold text-xl mb-2">Merge PDF</h3>
+                    <p class="text-sm text-gray-500">Combine multiple PDF files into one single document.</p>
+                </div>
+
+                <div onclick="showTool('split-pdf')" class="tool-card bg-white p-8 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-red-500">
+                    <div class="text-5xl mb-4">✂️</div>
+                    <h3 class="font-bold text-xl mb-2">Split PDF</h3>
+                    <p class="text-sm text-gray-500">Extract the first page from any PDF instantly.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="converterUI" class="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-2xl text-center hidden">
+            <button onclick="showHome()" class="text-indigo-600 text-sm mb-4 hover:underline">← Back to Dashboard</button>
+            <h1 id="toolTitle" class="text-3xl font-bold text-gray-900 mb-4">JPG to PDF</h1>
+            <p id="toolDesc" class="text-gray-600 mb-6">Select your files to get started.</p>
+
+            <input type="file" id="fileInput" class="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+
+            <button onclick="processFiles()" id="actionBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 w-full shadow-lg transition transform active:scale-95">
+                Convert Now
+            </button>
+
+            <div id="progressContainer" class="mt-8 hidden">
+                <div class="w-full bg-gray-100 rounded-full h-3">
+                    <div id="progressBar" class="bg-indigo-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p id="status" class="mt-3 text-sm text-gray-500 font-medium italic">Processing...</p>
+            </div>
+
+            <div id="successSection" class="mt-6 hidden flex-col items-center">
+                <div class="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                    <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <p class="text-green-600 font-bold text-lg">Task Complete!</p>
+                <button onclick="showHome()" class="mt-4 text-indigo-600 text-sm font-semibold underline">Done</button>
+            </div>
+        </div>
     </div>
-<div id="successIcon" class="mt-4 hidden flex-col items-center">
-    <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
-        <svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-        </svg>
-    </div>
-    <p class="text-green-600 font-bold mb-4">Conversion Complete!</p>
-    
-    <button onclick="resetConverter()" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold underline">
-        Convert another image
-    </button>
-</div>
-</div>
-    </div>
-</div>
 
     <script>
-async function uploadAndConvert() {
-    const fileInput = document.getElementById('imageInput');
-    const status = document.getElementById('status');
-    const btn = document.getElementById('convertBtn');
-    const progContainer = document.getElementById('progressContainer');
-    const progBar = document.getElementById('progressBar');
-    const successIcon = document.getElementById('successIcon');
+        let currentMode = 'jpg-to-pdf';
+        const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
 
-    if (fileInput.files.length === 0) {
-        alert("Please select a JPG file first!");
-        return;
-    }
-
-    // 1. Reset and Show Progress
-    successIcon.classList.add('hidden');
-    progContainer.classList.remove('hidden');
-    btn.disabled = true;
-    btn.classList.add('opacity-50');
-    
-    // Simulate progress starting
-    progBar.style.width = "30%";
-    status.innerText = "Uploading to server...";
-
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-
-    try {
-        // Update progress halfway
-        progBar.style.width = "60%";
-        status.innerText = "Brain is converting image to PDF...";
-
-        const response = await fetch('https://my-pdf-site-production.up.railway.app/convert/jpg-to-pdf', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            progBar.style.width = "100%";
-            status.innerText = "Downloading PDF...";
-            
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "converted_file.pdf";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-
-            // 2. Show Success Animation
-            progContainer.classList.add('hidden');
-            successIcon.classList.remove('hidden');
-        } else {
-            status.innerText = "Error: Conversion failed.";
+        function showHome() {
+            document.getElementById('homePage').classList.remove('hidden');
+            document.getElementById('converterUI').classList.add('hidden');
+            resetUI();
         }
-    } catch (error) {
-        console.error(error);
-        status.innerText = "Error: Connection lost.";
-    } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50');
-    }
-}
 
-function resetConverter() {
-    // Hide the success message
-    document.getElementById('successIcon').classList.add('hidden');
-    // Clear the file input
-    document.getElementById('imageInput').value = "";
-    // Hide the progress bar
-    document.getElementById('progressContainer').classList.add('hidden');
-    document.getElementById('progressBar').style.width = "0%";
-}
+        function showTool(mode) {
+            currentMode = mode;
+            document.getElementById('homePage').classList.add('hidden');
+            document.getElementById('converterUI').classList.remove('hidden');
+            resetUI();
+
+            const title = document.getElementById('toolTitle');
+            const desc = document.getElementById('toolDesc');
+            const input = document.getElementById('fileInput');
+
+            if (mode === 'jpg-to-pdf') {
+                title.innerText = "JPG to PDF";
+                desc.innerText = "Select a JPG image to convert to PDF.";
+                input.multiple = false;
+                input.accept = ".jpg,.jpeg";
+            } else if (mode === 'merge-pdf') {
+                title.innerText = "Merge PDF";
+                desc.innerText = "Select two or more PDFs to combine them.";
+                input.multiple = true;
+                input.accept = ".pdf";
+            } else if (mode === 'split-pdf') {
+                title.innerText = "Split PDF";
+                desc.innerText = "Select a PDF to extract the first page.";
+                input.multiple = false;
+                input.accept = ".pdf";
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('progressContainer').classList.add('hidden');
+            document.getElementById('successSection').classList.add('hidden');
+            document.getElementById('progressBar').style.width = "0%";
+            document.getElementById('fileInput').value = "";
+            document.getElementById('actionBtn').disabled = false;
+            document.getElementById('actionBtn').classList.remove('opacity-50');
+        }
+
+        async function processFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            const btn = document.getElementById('actionBtn');
+            const progContainer = document.getElementById('progressContainer');
+            const progBar = document.getElementById('progressBar');
+            const successSection = document.getElementById('successSection');
+
+            if (fileInput.files.length === 0) {
+                alert("Please select files first!");
+                return;
+            }
+
+            progContainer.classList.remove('hidden');
+            successSection.classList.add('hidden');
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            
+            progBar.style.width = "30%";
+            status.innerText = "Sending files to server...";
+
+            const formData = new FormData();
+            
+            // Logic for handling multiple vs single file uploads
+            if (currentMode === 'merge-pdf') {
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    formData.append('files', fileInput.files[i]);
+                }
+            } else {
+                formData.append('file', fileInput.files[0]);
+            }
+
+            // Decide which endpoint to call based on the tool selected
+            let endpoint = currentMode === 'jpg-to-pdf' ? '/convert/jpg-to-pdf' : `/${currentMode}`;
+
+            try {
+                progBar.style.width = "60%";
+                status.innerText = "Processing on server...";
+
+                const response = await fetch(`${BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    progBar.style.width = "100%";
+                    status.innerText = "Downloading result...";
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = currentMode + "_result.pdf";
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    progContainer.classList.add('hidden');
+                    successSection.classList.remove('hidden');
+                } else {
+                    status.innerText = "Error: Task failed.";
+                }
+            } catch (error) {
+                status.innerText = "Error: Could not connect to server.";
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        }
     </script>
 </body>
 </html>
