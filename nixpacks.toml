@@ -1,7 +1,10 @@
-# nixpacks.toml
-
 [phases.setup]
-aptPkgs = ['libcairo2-dev', 'pkg-config']
-
-# Optional but recommended – sometimes helps with Python extension builds
-aptPkgs = ['libcairo2-dev', 'pkg-config', 'python3-dev', 'build-essential']
+aptPkgs = [
+  "libcairo2-dev",
+  "pkg-config",
+  "python3-dev",
+  "build-essential",       # ensures gcc/make/etc.
+  "libgirepository1.0-dev",
+  "libglib2.0-dev",
+  "libpango1.0-dev"        # sometimes pulled indirectly
+]
