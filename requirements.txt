@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-pymupdf==1.23.9
+pymupdf
 python-multipart
 pypdf
-xhtml2pdf==0.2.11
+xhtml2pdf
