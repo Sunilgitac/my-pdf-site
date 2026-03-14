@@ -8,37 +8,19 @@
     <style>
         .tool-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
         .hidden { display: none; }
-/* Dark Mode Colors */
+        
+        /* Dark Mode Colors */
         .dark-mode { background-color: #121212; color: #ffffff; }
         .dark-mode .bg-white { background-color: #1e1e1e; color: #ffffff; border-color: #333; }
         .dark-mode .text-gray-900 { color: #f3f4f6; }
         .dark-mode .text-gray-600, .dark-mode .text-gray-500 { color: #9ca3af; }
         .dark-mode .bg-gray-50 { background-color: #121212; }
         .dark-mode .tool-card { border-top-color: #6366f1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
-function toggleDarkMode() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            
-            body.classList.toggle('dark-mode');
-            
-            if (body.classList.contains('dark-mode')) {
-                icon.innerText = "☀️"; // Sun icon for dark mode
-                localStorage.setItem('theme', 'dark');
-            } else {
-                icon.innerText = "🌙"; // Moon icon for light mode
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        // Apply saved theme preference on page load
-        if (localStorage.getItem('theme') === 'dark') {
-            toggleDarkMode();
-        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans">
 
-   <nav class="bg-indigo-600 p-4 text-white flex justify-between items-center shadow-lg mb-8">
+    <nav class="bg-indigo-600 p-4 text-white flex justify-between items-center shadow-lg mb-8">
         <div class="font-bold text-2xl tracking-tight cursor-pointer" onclick="showHome()">PDF Suite</div>
         <div class="flex items-center">
             <button onclick="toggleDarkMode()" class="mr-4 p-2 rounded-full hover:bg-indigo-700 transition text-xl" title="Toggle Dark Mode">
@@ -49,48 +31,76 @@ function toggleDarkMode() {
                 <button class="bg-indigo-700 px-5 py-2 rounded-full font-medium hover:bg-indigo-800 transition flex items-center gap-2">
                     Tools <span class="text-xs">▼</span>
                 </button>
-                <div class="absolute right-0 mt-2 w-56 bg-white text-gray-800 rounded-xl shadow-2xl hidden group-hover:block z-50 overflow-hidden border border-gray-100">
-                    <a href="#" onclick="showTool('jpg-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">🖼️ JPG to PDF</a>
-                    <a href="#" onclick="showTool('merge-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition border-b border-gray-50">📑 Merge PDF</a>
-                    <a href="#" onclick="showTool('split-pdf')" class="block px-4 py-3 hover:bg-indigo-50 transition">✂️ Split PDF</a>
+                <div class="absolute right-0 mt-2 w-64 bg-white text-gray-800 rounded-xl shadow-2xl hidden group-hover:block z-50 overflow-hidden border border-gray-100">
+                    <a href="#" onclick="showTool('jpg-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">🖼️ JPG to PDF</a>
+                    <a href="#" onclick="showTool('word-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📄 Word to PDF</a>
+                    <a href="#" onclick="showTool('excel-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📊 Excel to PDF</a>
+                    <a href="#" onclick="showTool('ppt-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📽️ PPT to PDF</a>
+                    <a href="#" onclick="showTool('html-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">🌐 HTML to PDF</a>
+                    <a href="#" onclick="showTool('merge-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📑 Merge PDF</a>
+                    <a href="#" onclick="showTool('split-pdf')" class="block px-4 py-3 hover:bg-indigo-50">✂️ Split PDF</a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto px-4 pb-12">
         
-        <div id="homePage" class="max-w-4xl mx-auto">
+        <div id="homePage" class="max-w-5xl mx-auto">
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-extrabold text-gray-900 mb-2">What would you like to do?</h1>
                 <p class="text-gray-600">Fast, secure, and easy-to-use PDF tools right in your browser.</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div onclick="showTool('jpg-to-pdf')" class="tool-card bg-white p-8 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-indigo-500">
-                    <div class="text-5xl mb-4">🖼️</div>
-                    <h3 class="font-bold text-xl mb-2">JPG to PDF</h3>
-                    <p class="text-sm text-gray-500">Convert your images into professional PDF files.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div onclick="showTool('jpg-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-indigo-500">
+                    <div class="text-4xl mb-4">🖼️</div>
+                    <h3 class="font-bold text-lg mb-2">JPG to PDF</h3>
+                    <p class="text-xs text-gray-500">Convert images to PDF.</p>
                 </div>
 
-                <div onclick="showTool('merge-pdf')" class="tool-card bg-white p-8 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-green-500">
-                    <div class="text-5xl mb-4">📑</div>
-                    <h3 class="font-bold text-xl mb-2">Merge PDF</h3>
-                    <p class="text-sm text-gray-500">Combine multiple PDF files into one single document.</p>
+                <div onclick="showTool('word-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-blue-600">
+                    <div class="text-4xl mb-4">📄</div>
+                    <h3 class="font-bold text-lg mb-2">Word to PDF</h3>
+                    <p class="text-xs text-gray-500">Convert .docx to PDF.</p>
                 </div>
 
-                <div onclick="showTool('split-pdf')" class="tool-card bg-white p-8 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-red-500">
-                    <div class="text-5xl mb-4">✂️</div>
-                    <h3 class="font-bold text-xl mb-2">Split PDF</h3>
-                    <p class="text-sm text-gray-500">Extract the first page from any PDF instantly.</p>
+                <div onclick="showTool('excel-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-green-600">
+                    <div class="text-4xl mb-4">📊</div>
+                    <h3 class="font-bold text-lg mb-2">Excel to PDF</h3>
+                    <p class="text-xs text-gray-500">Convert .xlsx to PDF.</p>
+                </div>
+
+                <div onclick="showTool('ppt-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-orange-500">
+                    <div class="text-4xl mb-4">📽️</div>
+                    <h3 class="font-bold text-lg mb-2">PPT to PDF</h3>
+                    <p class="text-xs text-gray-500">Convert .pptx to PDF.</p>
+                </div>
+
+                <div onclick="showTool('html-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-pink-500">
+                    <div class="text-4xl mb-4">🌐</div>
+                    <h3 class="font-bold text-lg mb-2">HTML to PDF</h3>
+                    <p class="text-xs text-gray-500">Convert .html to PDF.</p>
+                </div>
+
+                <div onclick="showTool('merge-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-green-400">
+                    <div class="text-4xl mb-4">📑</div>
+                    <h3 class="font-bold text-lg mb-2">Merge PDF</h3>
+                    <p class="text-xs text-gray-500">Combine multiple PDFs.</p>
+                </div>
+
+                <div onclick="showTool('split-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-red-500">
+                    <div class="text-4xl mb-4">✂️</div>
+                    <h3 class="font-bold text-lg mb-2">Split PDF</h3>
+                    <p class="text-xs text-gray-500">Extract page 1 from PDF.</p>
                 </div>
             </div>
         </div>
 
         <div id="converterUI" class="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-2xl text-center hidden">
             <button onclick="showHome()" class="text-indigo-600 text-sm mb-4 hover:underline">← Back to Dashboard</button>
-            <h1 id="toolTitle" class="text-3xl font-bold text-gray-900 mb-4">JPG to PDF</h1>
-            <p id="toolDesc" class="text-gray-600 mb-6">Select your files to get started.</p>
+            <h1 id="toolTitle" class="text-3xl font-bold text-gray-900 mb-4">Tool</h1>
+            <p id="toolDesc" class="text-gray-600 mb-6">Description.</p>
 
             <input type="file" id="fileInput" class="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
 
@@ -121,6 +131,23 @@ function toggleDarkMode() {
         let currentMode = 'jpg-to-pdf';
         const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
 
+        function toggleDarkMode() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                icon.innerText = "☀️";
+                localStorage.setItem('theme', 'dark');
+            } else {
+                icon.innerText = "🌙";
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            toggleDarkMode();
+        }
+
         function showHome() {
             document.getElementById('homePage').classList.remove('hidden');
             document.getElementById('converterUI').classList.add('hidden');
@@ -142,6 +169,26 @@ function toggleDarkMode() {
                 desc.innerText = "Select a JPG image to convert to PDF.";
                 input.multiple = false;
                 input.accept = ".jpg,.jpeg";
+            } else if (mode === 'word-to-pdf') {
+                title.innerText = "Word to PDF";
+                desc.innerText = "Select a .docx file to convert to PDF.";
+                input.multiple = false;
+                input.accept = ".docx";
+            } else if (mode === 'excel-to-pdf') {
+                title.innerText = "Excel to PDF";
+                desc.innerText = "Select a .xlsx file to convert to PDF.";
+                input.multiple = false;
+                input.accept = ".xlsx";
+            } else if (mode === 'ppt-to-pdf') {
+                title.innerText = "PowerPoint to PDF";
+                desc.innerText = "Select a .pptx file to convert to PDF.";
+                input.multiple = false;
+                input.accept = ".pptx";
+            } else if (mode === 'html-to-pdf') {
+                title.innerText = "HTML to PDF";
+                desc.innerText = "Select a .html file to convert to PDF.";
+                input.multiple = false;
+                input.accept = ".html";
             } else if (mode === 'merge-pdf') {
                 title.innerText = "Merge PDF";
                 desc.innerText = "Select two or more PDFs to combine them.";
@@ -183,11 +230,10 @@ function toggleDarkMode() {
             btn.classList.add('opacity-50');
             
             progBar.style.width = "30%";
-            status.innerText = "Sending files to server...";
+            status.innerText = "Sending files...";
 
             const formData = new FormData();
             
-            // Logic for handling multiple vs single file uploads
             if (currentMode === 'merge-pdf') {
                 for (let i = 0; i < fileInput.files.length; i++) {
                     formData.append('files', fileInput.files[i]);
@@ -196,8 +242,17 @@ function toggleDarkMode() {
                 formData.append('file', fileInput.files[0]);
             }
 
-            // Decide which endpoint to call based on the tool selected
-            let endpoint = currentMode === 'jpg-to-pdf' ? '/convert/jpg-to-pdf' : `/${currentMode}`;
+            // Endpoint Logic
+            let endpoint;
+            if (currentMode === 'jpg-to-pdf') {
+                endpoint = '/convert/jpg-to-pdf';
+            } else if (['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf'].includes(currentMode)) {
+                endpoint = '/convert-office';
+            } else if (currentMode === 'html-to-pdf') {
+                endpoint = '/html-to-pdf';
+            } else {
+                endpoint = `/${currentMode}`;
+            }
 
             try {
                 progBar.style.width = "60%";
@@ -216,7 +271,7 @@ function toggleDarkMode() {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = currentMode + "_result.pdf";
+                    a.download = currentMode.replace('-', '_') + "_result.pdf";
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
