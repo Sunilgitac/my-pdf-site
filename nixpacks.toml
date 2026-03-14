@@ -11,5 +11,5 @@ nixPkgs = [
 
 [variables]
 PYTHONPATH = "/app"
-# This tells the system exactly where to find libgobject-2.0.so
+# This is the critical fix for the OSError
 LD_LIBRARY_PATH = "/nix/var/nix/profiles/default/lib"
