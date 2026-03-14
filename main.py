@@ -11,6 +11,17 @@ from pypdf import PdfReader, PdfWriter
 from xhtml2pdf import pisa
 import shutil
 
+import os
+import shutil
+
+# Check if LibreOffice is in the path
+# If the variable is set, it will prioritize that path
+libre_path = os.getenv('LIBREOFFICE_PATH', 'libreoffice')
+
+if not shutil.which(libre_path):
+    # This matches the error you are seeing
+    raise Exception(f"LibreOffice not found at {libre_path}")
+
 # Setup logging to see what's happening in your Railway logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdf-suite")
