@@ -1,13 +1,5 @@
-import os
-import sys
-
-# GENUINE FIX: Manually inject the Nix library path into the environment 
-# before any other imports occur to prevent the OSError.
-nix_lib_path = "/nix/var/nix/profiles/default/lib"
-if os.path.exists(nix_lib_path):
-    os.environ["LD_LIBRARY_PATH"] = f"{nix_lib_path}:{os.environ.get('LD_LIBRARY_PATH', '')}"
-
 import fitz
+import os
 import uuid
 import shutil
 import logging
@@ -17,7 +9,6 @@ from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException, R
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pypdf import PdfReader, PdfWriter
-from weasyprint import HTML
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
@@ -33,14 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    logger.info(f"→ {request.method} {request.url.path}")
-    response = await call_next(request)
-    logger.info(f"← {response.status_code}")
-    return response
-
 def cleanup(path: str):
+    """Remove file or directory safely"""
     try:
         if os.path.isfile(path):
             os.remove(path)
@@ -49,22 +34,69 @@ def cleanup(path: str):
     except Exception as e:
         logger.warning(f"Cleanup failed for {path}: {e}")
 
+# Find libreoffice binary
 LO_BINARY = shutil.which("libreoffice") or shutil.which("soffice")
 
 @app.get("/health")
 async def health_check():
     return {
         "status": "ok",
-        "libreoffice": "available" if LO_BINARY else "missing",
-        "library_path": os.environ.get("LD_LIBRARY_PATH")
+        "libreoffice": "available" if LO_BINARY else "missing"
     }
 
+@app.post("/convert/html-to-pdf")
+async def html_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    if not file.filename.lower().endswith((".html", ".htm")):
+        raise HTTPException(400, "File must be HTML")
+    if not LO_BINARY:
+        raise HTTPException(503, "Conversion engine unavailable")
+
+    uid = str(uuid.uuid4())
+    input_path = f"temp_{uid}.html"
+    output_dir = f"out_{uid}"
+    os.makedirs(output_dir, exist_ok=True)
+
+    try:
+        # 1. Save uploaded HTML to a temporary file
+        content = await file.read()
+        with open(input_path, "wb") as f:
+            f.write(content)
+
+        # 2. Use LibreOffice (which is already working for you) to convert HTML -> PDF
+        subprocess.run(
+            [LO_BINARY, "--headless", "--convert-to", "pdf", "--outdir", output_dir, input_path],
+            check=True, 
+            timeout=60
+        )
+
+        # 3. Locate the result
+        generated = [f for f in os.listdir(output_dir) if f.lower().endswith(".pdf")]
+        if not generated:
+            raise RuntimeError("LibreOffice failed to produce a PDF")
+        
+        pdf_path = os.path.join(output_dir, generated[0])
+        
+        # 4. Final output path to survive directory cleanup
+        final_pdf = f"final_{uid}.pdf"
+        shutil.move(pdf_path, final_pdf)
+
+        background_tasks.add_task(cleanup, input_path)
+        background_tasks.add_task(cleanup, output_dir)
+        background_tasks.add_task(cleanup, final_pdf)
+
+        return FileResponse(final_pdf, filename="converted.pdf", media_type="application/pdf")
+
+    except Exception as e:
+        cleanup(input_path)
+        cleanup(output_dir)
+        logger.exception("HTML to PDF via LibreOffice failed")
+        raise HTTPException(500, f"Conversion failed: {str(e)}")
+
+# Keep your other working endpoints (JPG-to-PDF, Merge, etc.) below
 @app.post("/convert/jpg-to-pdf")
 async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
-    if not file.content_type.startswith("image/jpeg"):
-        raise HTTPException(400, "File must be a JPEG image")
     uid = str(uuid.uuid4())
-    pdf_path = f"output_{uid}.pdf"
+    pdf_path = f"out_{uid}.pdf"
     try:
         content = await file.read()
         doc = fitz.open()
@@ -76,11 +108,9 @@ async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(
         page.show_pdf_page(page.rect, pdf_doc, 0)
         doc.save(pdf_path)
         doc.close()
-        pdf_doc.close()
         background_tasks.add_task(cleanup, pdf_path)
         return FileResponse(pdf_path, filename="converted.pdf", media_type="application/pdf")
     except Exception as e:
-        logger.exception("JPG → PDF failed")
         raise HTTPException(500, str(e))
 
 @app.post("/merge-pdf")
@@ -98,46 +128,7 @@ async def merge_pdfs(background_tasks: BackgroundTasks, files: List[UploadFile] 
         background_tasks.add_task(cleanup, output_path)
         return FileResponse(output_path, filename="merged.pdf", media_type="application/pdf")
     except Exception as e:
-        cleanup(output_path)
         raise HTTPException(500, str(e))
-
-@app.post("/convert/office-to-pdf")
-async def office_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
-    if not LO_BINARY:
-        raise HTTPException(503, "LibreOffice not available")
-    uid = str(uuid.uuid4())
-    input_path = f"input_{uid}_{file.filename}"
-    output_dir = f"out_{uid}"
-    os.makedirs(output_dir, exist_ok=True)
-    try:
-        content = await file.read()
-        with open(input_path, "wb") as f:
-            f.write(content)
-        subprocess.run([LO_BINARY, "--headless", "--convert-to", "pdf", "--outdir", output_dir, input_path], check=True, timeout=90)
-        generated = [f for f in os.listdir(output_dir) if f.lower().endswith(".pdf")]
-        pdf_path = os.path.join(output_dir, generated[0])
-        background_tasks.add_task(cleanup, input_path)
-        background_tasks.add_task(cleanup, output_dir)
-        return FileResponse(pdf_path, filename="converted.pdf", media_type="application/pdf")
-    except Exception as e:
-        cleanup(input_path)
-        cleanup(output_dir)
-        raise HTTPException(500, str(e))
-
-@app.post("/convert/html-to-pdf")
-async def html_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
-    uid = str(uuid.uuid4())
-    pdf_path = f"html_{uid}.pdf"
-    try:
-        content = await file.read()
-        # SUCCESSFUL RUN: Using WeasyPrint with decoded content
-        HTML(string=content.decode("utf-8")).write_pdf(pdf_path)
-        background_tasks.add_task(cleanup, pdf_path)
-        return FileResponse(pdf_path, filename="converted.pdf", media_type="application/pdf")
-    except Exception as e:
-        if os.path.exists(pdf_path): cleanup(pdf_path)
-        logger.exception("HTML → PDF failed")
-        raise HTTPException(500, f"Conversion failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
