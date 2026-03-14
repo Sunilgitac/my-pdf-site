@@ -6,7 +6,7 @@
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
 
-     <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full">
+    <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-full">
     <h1 class="text-3xl font-bold text-indigo-600 mb-4">JPG to PDF</h1>
     <p class="text-gray-600 mb-6">Select a JPG image to convert it into a PDF instantly.</p>
 
@@ -22,14 +22,19 @@
         </div>
         <p id="status" class="mt-2 text-sm text-gray-500 italic font-medium">Preparing your file...</p>
     </div>
-
-    <div id="successIcon" class="mt-4 hidden flex-col items-center">
-        <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
-            <svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-            </svg>
-        </div>
-        <p class="text-green-600 font-bold">Conversion Complete!</p>
+<div id="successIcon" class="mt-4 hidden flex-col items-center">
+    <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
+        <svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+        </svg>
+    </div>
+    <p class="text-green-600 font-bold mb-4">Conversion Complete!</p>
+    
+    <button onclick="resetConverter()" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold underline">
+        Convert another image
+    </button>
+</div>
+</div>
     </div>
 </div>
 
@@ -96,7 +101,17 @@ async function uploadAndConvert() {
         btn.disabled = false;
         btn.classList.remove('opacity-50');
     }
-}    
+}
+
+function resetConverter() {
+    // Hide the success message
+    document.getElementById('successIcon').classList.add('hidden');
+    // Clear the file input
+    document.getElementById('imageInput').value = "";
+    // Hide the progress bar
+    document.getElementById('progressContainer').classList.add('hidden');
+    document.getElementById('progressBar').style.width = "0%";
+}
     </script>
 </body>
 </html>
