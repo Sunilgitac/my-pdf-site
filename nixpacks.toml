@@ -1,16 +1,10 @@
 [phases.setup]
 nixPkgs = [
-    "python313", 
+    "python311", 
     "libreoffice-bin",
     "cairo",
-    "pkg-config",
-    "pango",
-    "glib",
-    "gobject-introspection"
+    "pkg-config"
 ]
 
 [variables]
-PKG_CONFIG_PATH = "/usr/lib/pkgconfig:/usr/share/pkgconfig:/nix/var/nix/profiles/default/lib/pkgconfig"
-# This helps the compiler find the actual cairo.h headers
-C_INCLUDE_PATH = "/nix/var/nix/profiles/default/include"
-LIBRARY_PATH = "/nix/var/nix/profiles/default/lib"
+PYTHONPATH = "/app"
