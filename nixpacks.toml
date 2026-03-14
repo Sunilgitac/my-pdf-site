@@ -1,2 +1,5 @@
 [phases.setup]
 nixPkgs = ["python311", "libreoffice-bin"]
+
+[phases.install]
+cmds = ["python -m venv /app/.venv", ". /app/.venv/bin/activate", "pip install -r requirements.txt"]
