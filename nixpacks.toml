@@ -1,15 +1,8 @@
 [phases.setup]
 nixPkgs = [
     "python311", 
-    "libreoffice-bin",
-    "pango",
-    "cairo",
-    "fontconfig",
-    "glib",
-    "gobject-introspection"
+    "libreoffice-bin"
 ]
 
 [variables]
 PYTHONPATH = "/app"
-# This is the critical fix for the OSError
-LD_LIBRARY_PATH = "/nix/var/nix/profiles/default/lib"
