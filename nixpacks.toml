@@ -1,7 +1,18 @@
 [phases.setup]
-nixPkgs = ["python311", "libreoffice-bin", "gcc", "g++"]
+nixPkgs = [
+    "python311", 
+    "libreoffice-bin", 
+    "gcc", 
+    "g++", 
+    "cairo", 
+    "pango", 
+    "pkg-config"
+]
 
 [phases.install]
-cmds = ["python -m venv /app/.venv", ". /app/.venv/bin/activate", "pip install --upgrade pip", "pip install -r requirements.txt"]
-[phases.build]
-cmds = ["echo 'Forcing a fresh build'"]
+cmds = [
+    "python -m venv /app/.venv", 
+    ". /app/.venv/bin/activate", 
+    "pip install --upgrade pip", 
+    "pip install -r requirements.txt"
+]
