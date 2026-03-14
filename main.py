@@ -1,5 +1,12 @@
-import fitz
 import os
+import sys
+
+# Ensure the Nix library path is visible to the library loader
+nix_lib_path = "/nix/var/nix/profiles/default/lib"
+if nix_lib_path not in os.environ.get("LD_LIBRARY_PATH", ""):
+    os.environ["LD_LIBRARY_PATH"] = f"{nix_lib_path}:{os.environ.get('LD_LIBRARY_PATH', '')}"
+
+import fitz
 import uuid
 import shutil
 import logging
@@ -11,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pypdf import PdfReader, PdfWriter
 from weasyprint import HTML
 
+# ... (rest of your existing main.py code)
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdf-suite")
