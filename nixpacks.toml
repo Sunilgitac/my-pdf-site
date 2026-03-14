@@ -1,15 +1,2 @@
 [phases.setup]
-nixPkgs = [
-    "python311",
-    "libreoffice",
-    "fontconfig",
-    "corefonts",           # MS core fonts (Arial, Times, etc.)
-    "liberation",          # Good free fallback fonts
-    "gsfonts"              # Ghostscript fonts (often helps PDF rendering)
-]
-
-[phases.build]
-cmds = []
-
-[start]
-cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+nixPkgs = ["python311", "libreoffice-bin"]
