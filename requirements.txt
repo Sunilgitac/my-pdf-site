@@ -1,6 +1,7 @@
 fastapi
 uvicorn
-pymupdf
+pymupdf==1.23.9
 python-multipart
 pypdf
-xhtml2pdf 
+xhtml2pdf
+# cache-breaker-v2
