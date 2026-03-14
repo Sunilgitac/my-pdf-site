@@ -1,11 +1,9 @@
 [phases.setup]
 nixPkgs = [
     "python311", 
-    "libreoffice-bin", 
-    "cairo", 
-    "pkg-config", 
-    "pango", 
-    "libpng", 
-    "zlib", 
-    "freetype"
+    "libreoffice-bin",
+    "cairo",
+    "pkg-config",
+    "pango",
+    "glib"
 ]
