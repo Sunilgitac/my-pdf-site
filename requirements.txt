@@ -4,3 +4,4 @@ pymupdf
 python-multipart
 pypdf
 xhtml2pdf
+pycairo==1.29.0
