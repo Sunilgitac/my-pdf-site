@@ -3,4 +3,3 @@ uvicorn
 pymupdf
 python-multipart
 pypdf
-weasyprint
