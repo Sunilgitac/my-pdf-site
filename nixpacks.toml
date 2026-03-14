@@ -1,2 +1,7 @@
+# nixpacks.toml
+
 [phases.setup]
-nixPkgs = ["python311", "libreoffice-bin"]
+aptPkgs = ['libcairo2-dev', 'pkg-config']
+
+# Optional but recommended – sometimes helps with Python extension builds
+aptPkgs = ['libcairo2-dev', 'pkg-config', 'python3-dev', 'build-essential']
