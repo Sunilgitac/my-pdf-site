@@ -129,6 +129,7 @@
 
     <script>
         let currentMode = 'jpg-to-pdf';
+        // Ensure no trailing slash here for cleaner concatenation
         const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
 
         function toggleDarkMode() {
@@ -209,6 +210,7 @@
             document.getElementById('fileInput').value = "";
             document.getElementById('actionBtn').disabled = false;
             document.getElementById('actionBtn').classList.remove('opacity-50');
+            document.getElementById('status').innerText = "Processing...";
         }
 
         async function processFiles() {
@@ -242,7 +244,7 @@
                 formData.append('file', fileInput.files[0]);
             }
 
-            // Endpoint Logic
+            // --- REVISED ENDPOINT LOGIC ---
             let endpoint;
             if (currentMode === 'jpg-to-pdf') {
                 endpoint = '/convert/jpg-to-pdf';
@@ -254,11 +256,15 @@
                 endpoint = `/${currentMode}`;
             }
 
+            // Ensure no double slashes in URL
+            const finalUrl = `${BASE_URL.replace(/\/$/, '')}${endpoint}`;
+            console.log(`Sending request to: ${finalUrl}`);
+
             try {
                 progBar.style.width = "60%";
-                status.innerText = "Processing on server...";
+                status.innerText = "Processing on server (this may take a moment for Office files)...";
 
-                const response = await fetch(`${BASE_URL}${endpoint}`, {
+                const response = await fetch(finalUrl, {
                     method: 'POST',
                     body: formData
                 });
@@ -271,18 +277,26 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = currentMode.replace('-', '_') + "_result.pdf";
+                    // Dynamic filename based on tool
+                    const downloadName = `${currentMode.replace(/-/g, '_')}_result.pdf`;
+                    a.download = downloadName;
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
+                    window.URL.revokeObjectURL(url);
 
                     progContainer.classList.add('hidden');
                     successSection.classList.remove('hidden');
                 } else {
-                    status.innerText = "Error: Task failed.";
+                    // Try to parse error message from backend
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMsg = errorData.detail || "Task failed.";
+                    status.innerText = `Error: ${errorMsg}`;
+                    console.error("Server Error Response:", errorData);
                 }
             } catch (error) {
                 status.innerText = "Error: Could not connect to server.";
+                console.error("Fetch Connection Error:", error);
             } finally {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50');
