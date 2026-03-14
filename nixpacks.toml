@@ -1,18 +1,2 @@
 [phases.setup]
-nixPkgs = [
-    "python311",
-    "libreoffice-bin",
-    "cairo",
-    "pango",
-    "pkg-config",
-    "glib",
-    "fontconfig"
-]
-
-[phases.install]
-cmds = [
-    "python -m venv /app/.venv",
-    ". /app/.venv/bin/activate",
-    "pip install --upgrade pip",
-    "pip install -r requirements.txt"
-]
+nixPkgs = ["python311", "libreoffice", "fontconfig"]
