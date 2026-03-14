@@ -1,8 +1,10 @@
 [phases.setup]
 nixPkgs = [
     "python311", 
-    "libreoffice-bin"
+    "libreoffice-bin",
+    "cairo",
+    "pkg-config"
 ]
 
-[variables]
-PYTHONPATH = "/app"
+[phases.build]
+cmds = ["python -m pip install --no-cache-dir -r requirements.txt"]
