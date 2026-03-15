@@ -75,29 +75,28 @@ async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(
     uid = str(uuid.uuid4())
     pdf_path = f"out_{uid}.pdf"
     
-    # 1. Get the extension to handle jpg, jpeg, or png
-    ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
-    if ext == 'jpg': ext = 'jpeg'
+    # Extract extension dynamically from the filename
+    file_ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
+    # PyMuPDF expects 'jpeg' for both .jpg and .jpeg
+    if file_ext == 'jpg': file_ext = 'jpeg'
     
     try:
-        # 2. Open image from bytes
         img_data = await file.read()
-        img_doc = fitz.open(stream=img_data, filetype=ext)
+        # Use dynamic filetype
+        img_doc = fitz.open(stream=img_data, filetype=file_ext)
         
-        # 3. Convert image to PDF format
         pdf_bytes = img_doc.convert_to_pdf()
         img_doc.close()
         
-        # 4. Save to temporary file
+        # Save directly
         with open(pdf_path, "wb") as f:
             f.write(pdf_bytes)
             
         background_tasks.add_task(cleanup, pdf_path)
         return FileResponse(pdf_path, media_type="application/pdf")
-        
     except Exception as e:
-        logger.error(f"JPG conversion error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Image conversion failed: {str(e)}")
+        logger.error(f"Image conversion failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
 # --- Updated Functional Merge Route ---
 @app.post("/merge-pdf")
 async def merge_pdfs(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
