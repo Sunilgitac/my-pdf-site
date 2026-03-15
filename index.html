@@ -102,8 +102,8 @@
             <h1 id="toolTitle" class="text-3xl font-bold text-gray-900 mb-4">Tool</h1>
             <p id="toolDesc" class="text-gray-600 mb-6">Description.</p>
 
-            <input type="file" id="fileInput" class="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-
+	    <input type="file" id="fileInput" multiple class="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            
             <button onclick="processFiles()" id="actionBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 w-full shadow-lg transition transform active:scale-95">
                 Convert Now
             </button>
@@ -167,43 +167,44 @@
         document.getElementById('actionBtn').disabled = false;
     }
 
+
 async function processFiles() {
-        const fileInput = document.getElementById('fileInput');
-        const btn = document.getElementById('actionBtn');
-        const bar = document.getElementById('progressBar');
-        if (fileInput.files.length === 0) return alert("Select a file!");
+    const fileInput = document.getElementById('fileInput');
+    const btn = document.getElementById('actionBtn');
+    if (fileInput.files.length === 0) return alert("Select at least one file!");
 
-        // Start progress animation
-        btn.disabled = true;
-        document.getElementById('progressContainer').classList.remove('hidden');
-        bar.style.width = '50%'; 
-        
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
+    btn.disabled = true;
+    document.getElementById('progressContainer').classList.remove('hidden');
 
-        const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
-        let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
-
-        try {
-            const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
-            if (response.ok) {
-                bar.style.width = '100%';
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "converted.pdf";
-                a.click();
-                document.getElementById('successSection').classList.remove('hidden');
-            } else {
-                alert("Conversion failed.");
-            }
-        } catch (error) {
-            alert("Connection error.");
-        } finally {
-            btn.disabled = false;
-        }
+    const formData = new FormData();
+    
+    // Append all selected files to FormData
+    for (let i = 0; i < fileInput.files.length; i++) {
+        formData.append('files', fileInput.files[i]); // Use 'files' to match FastAPI List[UploadFile]
     }
+
+    const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
+    let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
+
+    try {
+        const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "result.pdf";
+            a.click();
+            document.getElementById('successSection').classList.remove('hidden');
+        } else {
+            alert("Conversion failed.");
+        }
+    } catch (error) {
+        alert("Connection error.");
+    } finally {
+        btn.disabled = false;
+    }
+}
 
    </script>
 </body>

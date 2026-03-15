@@ -1,5 +1,6 @@
 import fitz
 import os
+import io
 import uuid
 import shutil
 import logging
@@ -67,11 +68,59 @@ async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadF
         raise HTTPException(status_code=500, detail=str(e))
 
 # Placeholder routes for other buttons to prevent 404s
-@app.post("/convert/jpg-to-pdf")
-async def jpg_to_pdf(): return {"error": "Not implemented"}
+# --- Functional Routes ---
 
+@app.post("/convert/jpg-to-pdf")
+async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    uid = str(uuid.uuid4())
+    pdf_path = f"out_{uid}.pdf"
+    
+    # Read the image and convert
+    doc = fitz.open()
+    img_data = await file.read()
+    img_doc = fitz.open(stream=img_data, filetype="jpg")
+    
+    pdf_bytes = img_doc.convert_to_pdf()
+    img_doc.close()
+    
+    pdf_doc = fitz.open("pdf", pdf_bytes)
+    page = doc.new_page(width=pdf_doc[0].rect.width, height=pdf_doc[0].rect.height)
+    page.show_pdf_page(page.rect, pdf_doc, 0)
+    doc.save(pdf_path)
+    
+    background_tasks.add_task(cleanup, pdf_path)
+    return FileResponse(pdf_path, media_type="application/pdf")
+
+# --- Updated Functional Merge Route ---
 @app.post("/merge-pdf")
-async def merge_pdf(): return {"error": "Not implemented"}
+async def merge_pdfs(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+    uid = str(uuid.uuid4())
+    out = f"merged_{uid}.pdf"
+    
+    writer = PdfWriter()
+    for f in files:
+        # Read the file contents into memory
+        content = await f.read()
+        reader = PdfReader(io.BytesIO(content))
+        for page in reader.pages:
+            writer.add_page(page)
+    
+    with open(out, "wb") as f:
+        writer.write(f)
+        
+    background_tasks.add_task(cleanup, out)
+    return FileResponse(out, media_type="application/pdf")
 
 @app.post("/split-pdf")
-async def split_pdf(): return {"error": "Not implemented"}
+async def split_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    uid = str(uuid.uuid4())
+    out_path = f"split_{uid}.pdf"
+    
+    pdf_doc = fitz.open(stream=await file.read(), filetype="pdf")
+    # Example: extract just the first page
+    new_doc = fitz.open()
+    new_doc.insert_pdf(pdf_doc, from_page=0, to_page=0)
+    new_doc.save(out_path)
+    
+    background_tasks.add_task(cleanup, out_path)
+    return FileResponse(out_path, media_type="application/pdf")
