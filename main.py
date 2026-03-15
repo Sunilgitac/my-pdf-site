@@ -69,35 +69,44 @@ async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadF
 
 # Placeholder routes for other buttons to prevent 404s
 # --- Functional Routes ---
-
+# --- Updated Functional Merge Route ---
 @app.post("/convert/jpg-to-pdf")
 async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     uid = str(uuid.uuid4())
     pdf_path = f"out_{uid}.pdf"
     
-    # Extract extension dynamically from the filename
-    file_ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
-    # PyMuPDF expects 'jpeg' for both .jpg and .jpeg
-    if file_ext == 'jpg': file_ext = 'jpeg'
+    # Get the file extension
+    ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
+    
+    # Map common extensions to PyMuPDF/fitz-recognized format strings
+    # 'jpeg' covers .jpg and .jpeg
+    # 'png' covers .png
+    # Other formats like 'bmp' or 'tiff' can be added here if needed
+    if ext == 'jpg': ext = 'jpeg'
     
     try:
         img_data = await file.read()
-        # Use dynamic filetype
-        img_doc = fitz.open(stream=img_data, filetype=file_ext)
         
+        # Open using the extension. 
+        # By passing the 'ext' variable, fitz will interpret 'png', 'jpeg', etc. correctly.
+        img_doc = fitz.open(stream=img_data, filetype=ext)
+        
+        # Convert to PDF
         pdf_bytes = img_doc.convert_to_pdf()
         img_doc.close()
         
-        # Save directly
         with open(pdf_path, "wb") as f:
             f.write(pdf_bytes)
             
         background_tasks.add_task(cleanup, pdf_path)
         return FileResponse(pdf_path, media_type="application/pdf")
     except Exception as e:
-        logger.error(f"Image conversion failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
-# --- Updated Functional Merge Route ---
+        logger.error(f"Image conversion failed for {file.filename}: {str(e)}")
+        # Provide a more helpful error message to the user
+        raise HTTPException(status_code=500, detail=f"Failed to convert {file.filename}. Ensure it is a valid image.")
+
+
+
 @app.post("/merge-pdf")
 async def merge_pdfs(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
     uid = str(uuid.uuid4())
