@@ -1,6 +1,2 @@
 [phases.setup]
 nixPkgs = ["python311", "libreoffice-bin"]
-
-[variables]
-# Explicitly set the PATH to include the common Nix binary location
-PATH = "/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin"
