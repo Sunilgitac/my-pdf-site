@@ -18,15 +18,21 @@ import os
 import shutil
 
 def get_lo_binary():
-    # In Debian/Ubuntu images, it is usually here:
-    debian_path = "/usr/bin/libreoffice"
-    if os.path.exists(debian_path):
-        return debian_path
+    # Primary locations for LibreOffice in Debian-based Docker images
+    possible_paths = [
+        "/usr/bin/soffice",
+        "/usr/bin/libreoffice",
+        "/usr/lib/libreoffice/program/soffice"
+    ]
     
-    # Fallback to standard path search
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+            
+    # Fallback if hardcoded paths fail
     return shutil.which("soffice") or shutil.which("libreoffice")
 
-# Update your existing code to use this
+# Update your global variable
 LO_BINARY = get_lo_binary()
 
 
@@ -54,17 +60,16 @@ def cleanup(path: str):
 @app.get("/health")
 async def health():
     return {"status": "ok", "libreoffice": LO_BINARY or "missing"}
-@app.get("/debug-env")
-async def debug_env():
+
+@app.get("/debug-path")
+async def debug_path():
     import subprocess
-    # Run 'which' command
+    # Run the 'which' command directly within the container
     try:
-        path = subprocess.check_output(["which", "libreoffice"], text=True).strip()
-        return {"which_libreoffice": path}
-    except:
-        return {"error": "libreoffice not in PATH"}
-
-
+        output = subprocess.check_output(["which", "soffice"], text=True)
+        return {"soffice_location": output.strip()}
+    except subprocess.CalledProcessError:
+        return {"error": "soffice not found in PATH"}
 # PDF Tools
 @app.post("/convert/jpg-to-pdf")
 async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
