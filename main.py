@@ -30,24 +30,14 @@ def cleanup(path: str):
     except Exception as e:
         logger.warning(f"Cleanup failed: {e}")
 
-
 def get_lo_binary():
-    # Check common Nix paths
-    possible_paths = [
-        "/nix/var/nix/profiles/default/bin/soffice",
-        "/nix/var/nix/profiles/default/bin/libreoffice",
-        "/usr/bin/soffice",
-        "/usr/bin/libreoffice"
-    ]
-    for path in possible_paths:
-        if os.path.exists(path):
-            return path
-    # Fallback to system PATH
+    # Force the known path for LibreOffice on Nix
+    nix_path = "/nix/var/nix/profiles/default/bin/soffice"
+    if os.path.exists(nix_path):
+        return nix_path
+    
+    # Standard fallbacks
     return shutil.which("soffice") or shutil.which("libreoffice")
-
-
-
-
 
 
 #def get_lo_binary():
