@@ -75,22 +75,29 @@ async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(
     uid = str(uuid.uuid4())
     pdf_path = f"out_{uid}.pdf"
     
-    # Read the image and convert
-    doc = fitz.open()
-    img_data = await file.read()
-    img_doc = fitz.open(stream=img_data, filetype="jpg")
+    # 1. Get the extension to handle jpg, jpeg, or png
+    ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
+    if ext == 'jpg': ext = 'jpeg'
     
-    pdf_bytes = img_doc.convert_to_pdf()
-    img_doc.close()
-    
-    pdf_doc = fitz.open("pdf", pdf_bytes)
-    page = doc.new_page(width=pdf_doc[0].rect.width, height=pdf_doc[0].rect.height)
-    page.show_pdf_page(page.rect, pdf_doc, 0)
-    doc.save(pdf_path)
-    
-    background_tasks.add_task(cleanup, pdf_path)
-    return FileResponse(pdf_path, media_type="application/pdf")
-
+    try:
+        # 2. Open image from bytes
+        img_data = await file.read()
+        img_doc = fitz.open(stream=img_data, filetype=ext)
+        
+        # 3. Convert image to PDF format
+        pdf_bytes = img_doc.convert_to_pdf()
+        img_doc.close()
+        
+        # 4. Save to temporary file
+        with open(pdf_path, "wb") as f:
+            f.write(pdf_bytes)
+            
+        background_tasks.add_task(cleanup, pdf_path)
+        return FileResponse(pdf_path, media_type="application/pdf")
+        
+    except Exception as e:
+        logger.error(f"JPG conversion error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Image conversion failed: {str(e)}")
 # --- Updated Functional Merge Route ---
 @app.post("/merge-pdf")
 async def merge_pdfs(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
