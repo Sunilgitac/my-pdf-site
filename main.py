@@ -1,6 +1,5 @@
 import fitz
 import os
-import io
 import uuid
 import shutil
 import logging
@@ -31,6 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Helper Functions ---
 def cleanup(path: str):
     try:
         if os.path.isfile(path): os.remove(path)
@@ -42,9 +42,12 @@ def convert_to_pdf_helper(input_path: str, output_dir: str):
     subprocess.run(command, capture_output=True, text=True, check=True)
 
 # --- API Routes ---
+@app.get("/health")
+async def health():
+    return {"status": "ok", "libreoffice": LO_BINARY or "missing"}
+
 @app.post("/convert/office-to-pdf")
-async def convert_office_to_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
-    file = files[0] # Handle the first file from the list
+async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     if not LO_BINARY: raise HTTPException(status_code=503, detail="PDF engine missing")
     uid = str(uuid.uuid4())
     in_path = f"in_{uid}_{file.filename}"
@@ -56,51 +59,19 @@ async def convert_office_to_pdf(background_tasks: BackgroundTasks, files: List[U
         generated_files = [f for f in os.listdir(out_dir) if f.lower().endswith(".pdf")]
         if not generated_files: raise Exception("No PDF generated")
         out_path = os.path.join(out_dir, generated_files[0])
-        background_tasks.add_task(cleanup, in_path); background_tasks.add_task(cleanup, out_dir)
+        background_tasks.add_task(cleanup, in_path)
+        background_tasks.add_task(cleanup, out_dir)
         return FileResponse(out_path, media_type="application/pdf")
     except Exception as e:
         cleanup(in_path); cleanup(out_dir)
         raise HTTPException(status_code=500, detail=str(e))
 
+# Placeholder routes for other buttons to prevent 404s
 @app.post("/convert/jpg-to-pdf")
-async def jpg_to_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
-    file = files[0]
-    uid = str(uuid.uuid4())
-    pdf_path = f"out_{uid}.pdf"
-    file_ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
-    if file_ext == 'jpg': file_ext = 'jpeg'
-    try:
-        img_data = await file.read()
-        img_doc = fitz.open(stream=img_data, filetype=file_ext)
-        pdf_bytes = img_doc.convert_to_pdf()
-        img_doc.close()
-        with open(pdf_path, "wb") as f: f.write(pdf_bytes)
-        background_tasks.add_task(cleanup, pdf_path)
-        return FileResponse(pdf_path, media_type="application/pdf")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+async def jpg_to_pdf(): return {"error": "Not implemented"}
 
 @app.post("/merge-pdf")
-async def merge_pdfs(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
-    uid = str(uuid.uuid4())
-    out = f"merged_{uid}.pdf"
-    writer = PdfWriter()
-    for f in files:
-        content = await f.read()
-        reader = PdfReader(io.BytesIO(content))
-        for page in reader.pages: writer.add_page(page)
-    with open(out, "wb") as f: writer.write(f)
-    background_tasks.add_task(cleanup, out)
-    return FileResponse(out, media_type="application/pdf")
+async def merge_pdf(): return {"error": "Not implemented"}
 
 @app.post("/split-pdf")
-async def split_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
-    file = files[0]
-    uid = str(uuid.uuid4())
-    out_path = f"split_{uid}.pdf"
-    pdf_doc = fitz.open(stream=await file.read(), filetype="pdf")
-    new_doc = fitz.open()
-    new_doc.insert_pdf(pdf_doc, from_page=0, to_page=0)
-    new_doc.save(out_path)
-    background_tasks.add_task(cleanup, out_path)
-    return FileResponse(out_path, media_type="application/pdf")
+async def split_pdf(): return {"error": "Not implemented"}

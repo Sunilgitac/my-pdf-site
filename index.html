@@ -102,8 +102,8 @@
             <h1 id="toolTitle" class="text-3xl font-bold text-gray-900 mb-4">Tool</h1>
             <p id="toolDesc" class="text-gray-600 mb-6">Description.</p>
 
-	    <input type="file" id="fileInput" multiple class="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-            
+            <input type="file" id="fileInput" class="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+
             <button onclick="processFiles()" id="actionBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 w-full shadow-lg transition transform active:scale-95">
                 Convert Now
             </button>
@@ -128,52 +128,82 @@
     </div>
 
 <script>
-    
     let currentMode = 'jpg-to-pdf';
     const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
+
+    function toggleDarkMode() {
+        const body = document.body;
+        const icon = document.getElementById('themeIcon');
+        body.classList.toggle('dark-mode');
+        icon.innerText = body.classList.contains('dark-mode') ? "☀️" : "🌙";
+        localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+
+    if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
+
+    function showHome() {
+        document.getElementById('homePage').classList.remove('hidden');
+        document.getElementById('converterUI').classList.add('hidden');
+        resetUI();
+    }
 
     function showTool(mode) {
         currentMode = mode;
         document.getElementById('homePage').classList.add('hidden');
         document.getElementById('converterUI').classList.remove('hidden');
-        const input = document.getElementById('fileInput');
+        resetUI();
         
-        // Correctly set accepted file types
-        if (mode === 'jpg-to-pdf') {
-            input.accept = "image/jpeg,image/png";
-        } else if (['merge-pdf', 'split-pdf'].includes(mode)) {
-            input.accept = ".pdf";
-        } else {
-            input.accept = "*";
+        const title = document.getElementById('toolTitle');
+        const desc = document.getElementById('toolDesc');
+        const input = document.getElementById('fileInput');
+
+        title.innerText = mode.replace(/-/g, ' ').toUpperCase();
+        input.accept = mode.includes('merge') || mode.includes('split') ? ".pdf" : ".*";
+    }
+
+    function resetUI() {
+        document.getElementById('progressContainer').classList.add('hidden');
+        document.getElementById('successSection').classList.add('hidden');
+        document.getElementById('actionBtn').disabled = false;
+    }
+
+async function processFiles() {
+        const fileInput = document.getElementById('fileInput');
+        const btn = document.getElementById('actionBtn');
+        const bar = document.getElementById('progressBar');
+        if (fileInput.files.length === 0) return alert("Select a file!");
+
+        // Start progress animation
+        btn.disabled = true;
+        document.getElementById('progressContainer').classList.remove('hidden');
+        bar.style.width = '50%'; 
+        
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
+        let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
+
+        try {
+            const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
+            if (response.ok) {
+                bar.style.width = '100%';
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "converted.pdf";
+                a.click();
+                document.getElementById('successSection').classList.remove('hidden');
+            } else {
+                alert("Conversion failed.");
+            }
+        } catch (error) {
+            alert("Connection error.");
+        } finally {
+            btn.disabled = false;
         }
     }
-
-
-// In index.html, update the route logic
-async function processFiles() {
-    const fileInput = document.getElementById('fileInput');
-    // ... rest of your code ...
-
-    // Map your modes to the correct backend route paths
-    const routeMap = {
-        'jpg-to-pdf': '/convert/jpg-to-pdf',
-        'word-to-pdf': '/convert/office-to-pdf',
-        'excel-to-pdf': '/convert/office-to-pdf',
-        'ppt-to-pdf': '/convert/office-to-pdf',
-        'html-to-pdf': '/convert/office-to-pdf',
-        'merge-pdf': '/merge-pdf',
-        'split-pdf': '/split-pdf'
-    };
-
-    const route = routeMap[currentMode];
-
-    try {
-        const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
-        // ... rest of your code ...
-    } catch (e) {
-        alert("Connection error.");
-    }
-}
 
    </script>
 </body>
