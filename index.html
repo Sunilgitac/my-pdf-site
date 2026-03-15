@@ -148,33 +148,33 @@
         }
     }
 
-    async function processFiles() {
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput.files.length === 0) return alert("Select at least one file!");
 
-        const formData = new FormData();
-        for (let i = 0; i < fileInput.files.length; i++) {
-            formData.append('files', fileInput.files[i]); 
-        }
+// In index.html, update the route logic
+async function processFiles() {
+    const fileInput = document.getElementById('fileInput');
+    // ... rest of your code ...
 
-        const route = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'].includes(currentMode) 
-                      ? '/convert/office-to-pdf' : `/${currentMode}`;
+    // Map your modes to the correct backend route paths
+    const routeMap = {
+        'jpg-to-pdf': '/convert/jpg-to-pdf',
+        'word-to-pdf': '/convert/office-to-pdf',
+        'excel-to-pdf': '/convert/office-to-pdf',
+        'ppt-to-pdf': '/convert/office-to-pdf',
+        'html-to-pdf': '/convert/office-to-pdf',
+        'merge-pdf': '/merge-pdf',
+        'split-pdf': '/split-pdf'
+    };
 
-        try {
-            const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = "converted.pdf"; a.click();
-                alert("Task Complete!");
-            } else {
-                alert("Conversion failed.");
-            }
-        } catch (e) {
-            alert("Connection error.");
-        }
+    const route = routeMap[currentMode];
+
+    try {
+        const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
+        // ... rest of your code ...
+    } catch (e) {
+        alert("Connection error.");
     }
+}
+
    </script>
 </body>
 </html>
