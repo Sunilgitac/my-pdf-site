@@ -127,165 +127,84 @@
         </div>
     </div>
 
-    <script>
-        let currentMode = 'jpg-to-pdf';
-        // Ensure no trailing slash here for cleaner concatenation
-        const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
+<script>
+    let currentMode = 'jpg-to-pdf';
+    const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
 
-        function toggleDarkMode() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) {
-                icon.innerText = "☀️";
-                localStorage.setItem('theme', 'dark');
+    function toggleDarkMode() {
+        const body = document.body;
+        const icon = document.getElementById('themeIcon');
+        body.classList.toggle('dark-mode');
+        icon.innerText = body.classList.contains('dark-mode') ? "☀️" : "🌙";
+        localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+
+    if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
+
+    function showHome() {
+        document.getElementById('homePage').classList.remove('hidden');
+        document.getElementById('converterUI').classList.add('hidden');
+        resetUI();
+    }
+
+    function showTool(mode) {
+        currentMode = mode;
+        document.getElementById('homePage').classList.add('hidden');
+        document.getElementById('converterUI').classList.remove('hidden');
+        resetUI();
+        
+        const title = document.getElementById('toolTitle');
+        const desc = document.getElementById('toolDesc');
+        const input = document.getElementById('fileInput');
+
+        title.innerText = mode.replace(/-/g, ' ').toUpperCase();
+        input.accept = mode.includes('merge') || mode.includes('split') ? ".pdf" : ".*";
+    }
+
+    function resetUI() {
+        document.getElementById('progressContainer').classList.add('hidden');
+        document.getElementById('successSection').classList.add('hidden');
+        document.getElementById('actionBtn').disabled = false;
+    }
+
+async function processFiles() {
+        const fileInput = document.getElementById('fileInput');
+        const btn = document.getElementById('actionBtn');
+        const bar = document.getElementById('progressBar');
+        if (fileInput.files.length === 0) return alert("Select a file!");
+
+        // Start progress animation
+        btn.disabled = true;
+        document.getElementById('progressContainer').classList.remove('hidden');
+        bar.style.width = '50%'; 
+        
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
+        let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
+
+        try {
+            const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
+            if (response.ok) {
+                bar.style.width = '100%';
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "converted.pdf";
+                a.click();
+                document.getElementById('successSection').classList.remove('hidden');
             } else {
-                icon.innerText = "🌙";
-                localStorage.setItem('theme', 'light');
+                alert("Conversion failed.");
             }
+        } catch (error) {
+            alert("Connection error.");
+        } finally {
+            btn.disabled = false;
         }
+    }
 
-        if (localStorage.getItem('theme') === 'dark') {
-            toggleDarkMode();
-        }
-
-        function showHome() {
-            document.getElementById('homePage').classList.remove('hidden');
-            document.getElementById('converterUI').classList.add('hidden');
-            resetUI();
-        }
-
-        function showTool(mode) {
-            currentMode = mode;
-            document.getElementById('homePage').classList.add('hidden');
-            document.getElementById('converterUI').classList.remove('hidden');
-            resetUI();
-
-            const title = document.getElementById('toolTitle');
-            const desc = document.getElementById('toolDesc');
-            const input = document.getElementById('fileInput');
-
-            if (mode === 'jpg-to-pdf') {
-                title.innerText = "JPG to PDF";
-                desc.innerText = "Select a JPG image to convert to PDF.";
-                input.multiple = false;
-                input.accept = ".jpg,.jpeg";
-            } else if (mode === 'word-to-pdf') {
-                title.innerText = "Word to PDF";
-                desc.innerText = "Select a .docx file to convert to PDF.";
-                input.multiple = false;
-                input.accept = ".docx";
-            } else if (mode === 'excel-to-pdf') {
-                title.innerText = "Excel to PDF";
-                desc.innerText = "Select a .xlsx file to convert to PDF.";
-                input.multiple = false;
-                input.accept = ".xlsx";
-            } else if (mode === 'ppt-to-pdf') {
-                title.innerText = "PowerPoint to PDF";
-                desc.innerText = "Select a .pptx file to convert to PDF.";
-                input.multiple = false;
-                input.accept = ".pptx";
-            } else if (mode === 'html-to-pdf') {
-                title.innerText = "HTML to PDF";
-                desc.innerText = "Select a .html file to convert to PDF.";
-                input.multiple = false;
-                input.accept = ".html";
-            } else if (mode === 'merge-pdf') {
-                title.innerText = "Merge PDF";
-                desc.innerText = "Select two or more PDFs to combine them.";
-                input.multiple = true;
-                input.accept = ".pdf";
-            } else if (mode === 'split-pdf') {
-                title.innerText = "Split PDF";
-                desc.innerText = "Select a PDF to extract the first page.";
-                input.multiple = false;
-                input.accept = ".pdf";
-            }
-        }
-
-        function resetUI() {
-            document.getElementById('progressContainer').classList.add('hidden');
-            document.getElementById('successSection').classList.add('hidden');
-            document.getElementById('progressBar').style.width = "0%";
-            document.getElementById('fileInput').value = "";
-            document.getElementById('actionBtn').disabled = false;
-            document.getElementById('actionBtn').classList.remove('opacity-50');
-            document.getElementById('status').innerText = "Processing...";
-        }
-
-        async function processFiles() {
-            const fileInput = document.getElementById('fileInput');
-            const status = document.getElementById('status');
-            const btn = document.getElementById('actionBtn');
-            const progContainer = document.getElementById('progressContainer');
-            const progBar = document.getElementById('progressBar');
-            const successSection = document.getElementById('successSection');
-
-            if (fileInput.files.length === 0) {
-                alert("Please select files first!");
-                return;
-            }
-
-            progContainer.classList.remove('hidden');
-            successSection.classList.add('hidden');
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-            
-            progBar.style.width = "30%";
-            status.innerText = "Processing on server...";
-
-            const formData = new FormData();
-            // Handle multiple files for merge, single for others
-            if (currentMode === 'merge-pdf') {
-                for (let i = 0; i < fileInput.files.length; i++) {
-                    formData.append('files', fileInput.files[i]);
-                }
-            } else {
-                formData.append('file', fileInput.files[0]);
-            }
-
-            // Route logic matching the new backend:
-            // If it's a conversion, route to /convert/type-to-pdf
-            // Otherwise, route to /merge-pdf or /split-pdf
-            let route;
-            if (currentMode.includes('convert')) {
-                const type = currentMode.split('-')[0]; // gets 'jpg', 'office', or 'html'
-                route = `/convert/${type}-to-pdf`;
-            } else {
-                route = `/${currentMode}`;
-            }
-
-            const finalUrl = `${BASE_URL.replace(/\/$/, '')}${route}`;
-
-            try {
-                const response = await fetch(finalUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    progBar.style.width = "100%";
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${currentMode}_result.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
-                    successSection.classList.remove('hidden');
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    status.innerText = `Error: ${errorData.detail || "Task failed"}`;
-                }
-            } catch (error) {
-                status.innerText = "Error: Could not connect to server.";
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
-            }
-        }
-    </script>
+   </script>
 </body>
 </html>
