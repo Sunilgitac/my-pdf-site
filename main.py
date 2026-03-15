@@ -10,6 +10,29 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pypdf import PdfReader, PdfWriter
 
+import os
+import shutil
+import logging
+
+def get_lo_binary():
+    # 1. Check if it's explicitly in the PATH
+    binary = shutil.which("soffice") or shutil.which("libreoffice")
+    if binary:
+        return binary
+
+    # 2. Manual search of common Nix locations if PATH lookup fails
+    # This covers cases where the binary is installed but not linked to PATH
+    search_paths = [
+        "/nix/var/nix/profiles/default/bin/soffice",
+        "/usr/bin/soffice",
+        "/usr/local/bin/soffice"
+    ]
+    for path in search_paths:
+        if os.path.exists(path):
+            return path
+    
+    return None
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdf-suite")
 
@@ -30,13 +53,13 @@ def cleanup(path: str):
     except Exception as e:
         logger.warning(f"Cleanup failed: {e}")
 
-def get_lo_binary():
+#def get_lo_binary():
     # 'soffice' is the command-line name for LibreOffice
-    binary = shutil.which("soffice") or shutil.which("libreoffice")
+    #binary = shutil.which("soffice") or shutil.which("libreoffice")
     
     # Log what we found for debugging
-    logger.info(f"LibreOffice search result: {binary}")
-    return binary
+    #logger.info(f"LibreOffice search result: {binary}")
+    #return binary 
 
 
 #def get_lo_binary():
