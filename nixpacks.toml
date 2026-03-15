@@ -1,6 +1,6 @@
 [phases.setup]
 nixPkgs = ["python311", "libreoffice-bin"]
 
-[phases.build]
-# --no-cache-dir prevents using corrupted build data from previous crashes
-cmds = ["python -m pip install --no-cache-dir -r requirements.txt"]
+[variables]
+# Explicitly set the PATH to include the common Nix binary location
+PATH = "/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin"
