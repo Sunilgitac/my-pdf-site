@@ -1,2 +1,11 @@
 [phases.setup]
 nixPkgs = ["python311", "libreoffice-bin"]
+
+[phases.build]
+# This command runs during the build and will print the location to your Railway logs
+cmds = [
+    "python -m pip install --no-cache-dir -r requirements.txt",
+    "echo '--- DEBUG: Looking for soffice ---'",
+    "which soffice || echo 'soffice not found in PATH'",
+    "find /nix/store -name soffice 2>/dev/null | head -n 5 || echo 'No soffice found in nix store'"
+]
