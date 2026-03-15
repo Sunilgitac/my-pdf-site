@@ -1,6 +1,6 @@
+--only-binary=:all:
 fastapi
 uvicorn
 pymupdf
 python-multipart
 pypdf
-xhtml2pdf
