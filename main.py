@@ -31,13 +31,12 @@ def cleanup(path: str):
         logger.warning(f"Cleanup failed: {e}")
 
 def get_lo_binary():
-    # Force the known path for LibreOffice on Nix
-    nix_path = "/nix/var/nix/profiles/default/bin/soffice"
-    if os.path.exists(nix_path):
-        return nix_path
+    # 'soffice' is the command-line name for LibreOffice
+    binary = shutil.which("soffice") or shutil.which("libreoffice")
     
-    # Standard fallbacks
-    return shutil.which("soffice") or shutil.which("libreoffice")
+    # Log what we found for debugging
+    logger.info(f"LibreOffice search result: {binary}")
+    return binary
 
 
 #def get_lo_binary():
