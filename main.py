@@ -31,7 +31,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Helper Functions ---
 def cleanup(path: str):
     try:
         if os.path.isfile(path): os.remove(path)
@@ -43,12 +42,9 @@ def convert_to_pdf_helper(input_path: str, output_dir: str):
     subprocess.run(command, capture_output=True, text=True, check=True)
 
 # --- API Routes ---
-@app.get("/health")
-async def health():
-    return {"status": "ok", "libreoffice": LO_BINARY or "missing"}
-
 @app.post("/convert/office-to-pdf")
-async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def convert_office_to_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+    file = files[0] # Handle the first file from the list
     if not LO_BINARY: raise HTTPException(status_code=503, detail="PDF engine missing")
     uid = str(uuid.uuid4())
     in_path = f"in_{uid}_{file.filename}"
@@ -60,80 +56,51 @@ async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadF
         generated_files = [f for f in os.listdir(out_dir) if f.lower().endswith(".pdf")]
         if not generated_files: raise Exception("No PDF generated")
         out_path = os.path.join(out_dir, generated_files[0])
-        background_tasks.add_task(cleanup, in_path)
-        background_tasks.add_task(cleanup, out_dir)
+        background_tasks.add_task(cleanup, in_path); background_tasks.add_task(cleanup, out_dir)
         return FileResponse(out_path, media_type="application/pdf")
     except Exception as e:
         cleanup(in_path); cleanup(out_dir)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Placeholder routes for other buttons to prevent 404s
-# --- Functional Routes ---
-# --- Updated Functional Merge Route ---
-
 @app.post("/convert/jpg-to-pdf")
-async def jpg_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def jpg_to_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+    file = files[0]
     uid = str(uuid.uuid4())
     pdf_path = f"out_{uid}.pdf"
-    
-    # 1. Dynamically get the extension from the filename
     file_ext = os.path.splitext(file.filename)[1].lower().replace('.', '')
-    
-    # 2. PyMuPDF handles 'jpeg' for both .jpg and .jpeg
     if file_ext == 'jpg': file_ext = 'jpeg'
-    
     try:
-        # Read the image data
         img_data = await file.read()
-        
-        # 3. Use the detected file_ext instead of hardcoding "jpg"
         img_doc = fitz.open(stream=img_data, filetype=file_ext)
-        
-        # Convert to PDF
         pdf_bytes = img_doc.convert_to_pdf()
         img_doc.close()
-        
-        # Save the result
-        with open(pdf_path, "wb") as f:
-            f.write(pdf_bytes)
-            
+        with open(pdf_path, "wb") as f: f.write(pdf_bytes)
         background_tasks.add_task(cleanup, pdf_path)
         return FileResponse(pdf_path, media_type="application/pdf")
-        
     except Exception as e:
-        logger.error(f"Image conversion failed for {file.filename}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
-        # Provide a more helpful error message to the user
-        raise HTTPException(status_code=500, detail=f"Failed to convert {file.filename}. Ensure it is a valid image.")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/merge-pdf")
 async def merge_pdfs(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
     uid = str(uuid.uuid4())
     out = f"merged_{uid}.pdf"
-    
     writer = PdfWriter()
     for f in files:
-        # Read the file contents into memory
         content = await f.read()
         reader = PdfReader(io.BytesIO(content))
-        for page in reader.pages:
-            writer.add_page(page)
-    
-    with open(out, "wb") as f:
-        writer.write(f)
-        
+        for page in reader.pages: writer.add_page(page)
+    with open(out, "wb") as f: writer.write(f)
     background_tasks.add_task(cleanup, out)
     return FileResponse(out, media_type="application/pdf")
 
 @app.post("/split-pdf")
-async def split_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+async def split_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
+    file = files[0]
     uid = str(uuid.uuid4())
     out_path = f"split_{uid}.pdf"
-    
     pdf_doc = fitz.open(stream=await file.read(), filetype="pdf")
-    # Example: extract just the first page
     new_doc = fitz.open()
     new_doc.insert_pdf(pdf_doc, from_page=0, to_page=0)
     new_doc.save(out_path)
-    
     background_tasks.add_task(cleanup, out_path)
     return FileResponse(out_path, media_type="application/pdf")

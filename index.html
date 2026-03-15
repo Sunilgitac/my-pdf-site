@@ -128,84 +128,53 @@
     </div>
 
 <script>
+    
     let currentMode = 'jpg-to-pdf';
     const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
-
-    function toggleDarkMode() {
-        const body = document.body;
-        const icon = document.getElementById('themeIcon');
-        body.classList.toggle('dark-mode');
-        icon.innerText = body.classList.contains('dark-mode') ? "☀️" : "🌙";
-        localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
-    }
-
-    if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
-
-    function showHome() {
-        document.getElementById('homePage').classList.remove('hidden');
-        document.getElementById('converterUI').classList.add('hidden');
-        resetUI();
-    }
 
     function showTool(mode) {
         currentMode = mode;
         document.getElementById('homePage').classList.add('hidden');
         document.getElementById('converterUI').classList.remove('hidden');
-        resetUI();
-        
-        const title = document.getElementById('toolTitle');
-        const desc = document.getElementById('toolDesc');
         const input = document.getElementById('fileInput');
-
-        title.innerText = mode.replace(/-/g, ' ').toUpperCase();
-        input.accept = mode.includes('merge') || mode.includes('split') ? ".pdf" : ".*";
-    }
-
-    function resetUI() {
-        document.getElementById('progressContainer').classList.add('hidden');
-        document.getElementById('successSection').classList.add('hidden');
-        document.getElementById('actionBtn').disabled = false;
-    }
-
-
-async function processFiles() {
-    const fileInput = document.getElementById('fileInput');
-    const btn = document.getElementById('actionBtn');
-    if (fileInput.files.length === 0) return alert("Select at least one file!");
-
-    btn.disabled = true;
-    document.getElementById('progressContainer').classList.remove('hidden');
-
-    const formData = new FormData();
-    
-    // Append all selected files to FormData
-    for (let i = 0; i < fileInput.files.length; i++) {
-        formData.append('files', fileInput.files[i]); // Use 'files' to match FastAPI List[UploadFile]
-    }
-
-    const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
-    let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
-
-    try {
-        const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "result.pdf";
-            a.click();
-            document.getElementById('successSection').classList.remove('hidden');
+        
+        // Correctly set accepted file types
+        if (mode === 'jpg-to-pdf') {
+            input.accept = "image/jpeg,image/png";
+        } else if (['merge-pdf', 'split-pdf'].includes(mode)) {
+            input.accept = ".pdf";
         } else {
-            alert("Conversion failed.");
+            input.accept = "*";
         }
-    } catch (error) {
-        alert("Connection error.");
-    } finally {
-        btn.disabled = false;
     }
-}
 
+    async function processFiles() {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files.length === 0) return alert("Select at least one file!");
+
+        const formData = new FormData();
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('files', fileInput.files[i]); 
+        }
+
+        const route = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'].includes(currentMode) 
+                      ? '/convert/office-to-pdf' : `/${currentMode}`;
+
+        try {
+            const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = "converted.pdf"; a.click();
+                alert("Task Complete!");
+            } else {
+                alert("Conversion failed.");
+            }
+        } catch (e) {
+            alert("Connection error.");
+        }
+    }
    </script>
 </body>
 </html>
