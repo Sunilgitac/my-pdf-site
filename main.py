@@ -14,24 +14,20 @@ import os
 import shutil
 import subprocess
 
-def get_lo_binary():
-    # 1. Try standard PATH search
-    binary = shutil.which("soffice") or shutil.which("libreoffice")
-    if binary:
-        return binary
-        
-    # 2. Search /nix/store specifically (Nixpacks environment)
-    try:
-        # This finds the first 'soffice' binary in the nix store
-        result = subprocess.check_output("find /nix/store -name soffice -executable -type f 2>/dev/null | head -n 1", shell=True, text=True)
-        path = result.strip()
-        if path and os.path.exists(path):
-            return path
-    except:
-        pass
-        
-    return None
+import os
+import shutil
 
+def get_lo_binary():
+    # In Debian/Ubuntu images, it is usually here:
+    debian_path = "/usr/bin/libreoffice"
+    if os.path.exists(debian_path):
+        return debian_path
+    
+    # Fallback to standard path search
+    return shutil.which("soffice") or shutil.which("libreoffice")
+
+# Update your existing code to use this
+LO_BINARY = get_lo_binary()
 
 
 logging.basicConfig(level=logging.INFO)
@@ -54,23 +50,20 @@ def cleanup(path: str):
     except Exception as e:
         logger.warning(f"Cleanup failed: {e}")
 
-#def get_lo_binary():
-    # 'soffice' is the command-line name for LibreOffice
-    #binary = shutil.which("soffice") or shutil.which("libreoffice")
-    
-    # Log what we found for debugging
-    #logger.info(f"LibreOffice search result: {binary}")
-    #return binary 
-
-
-#def get_lo_binary():
-   # return shutil.which("soffice") or shutil.which("libreoffice")
-
-LO_BINARY = get_lo_binary()
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "libreoffice": LO_BINARY or "missing"}
+@app.get("/debug-env")
+async def debug_env():
+    import subprocess
+    # Run 'which' command
+    try:
+        path = subprocess.check_output(["which", "libreoffice"], text=True).strip()
+        return {"which_libreoffice": path}
+    except:
+        return {"error": "libreoffice not in PATH"}
+
 
 # PDF Tools
 @app.post("/convert/jpg-to-pdf")
