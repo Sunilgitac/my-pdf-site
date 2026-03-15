@@ -12,26 +12,27 @@ from pypdf import PdfReader, PdfWriter
 
 import os
 import shutil
-import logging
+import subprocess
 
 def get_lo_binary():
-    # 1. Check if it's explicitly in the PATH
+    # 1. Try standard PATH search
     binary = shutil.which("soffice") or shutil.which("libreoffice")
     if binary:
         return binary
-
-    # 2. Manual search of common Nix locations if PATH lookup fails
-    # This covers cases where the binary is installed but not linked to PATH
-    search_paths = [
-        "/nix/var/nix/profiles/default/bin/soffice",
-        "/usr/bin/soffice",
-        "/usr/local/bin/soffice"
-    ]
-    for path in search_paths:
-        if os.path.exists(path):
+        
+    # 2. Search /nix/store specifically (Nixpacks environment)
+    try:
+        # This finds the first 'soffice' binary in the nix store
+        result = subprocess.check_output("find /nix/store -name soffice -executable -type f 2>/dev/null | head -n 1", shell=True, text=True)
+        path = result.strip()
+        if path and os.path.exists(path):
             return path
-    
+    except:
+        pass
+        
     return None
+
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pdf-suite")
