@@ -232,10 +232,10 @@
             btn.classList.add('opacity-50');
             
             progBar.style.width = "30%";
-            status.innerText = "Sending files...";
+            status.innerText = "Processing on server...";
 
             const formData = new FormData();
-            
+            // Handle multiple files for merge, single for others
             if (currentMode === 'merge-pdf') {
                 for (let i = 0; i < fileInput.files.length; i++) {
                     formData.append('files', fileInput.files[i]);
@@ -244,26 +244,20 @@
                 formData.append('file', fileInput.files[0]);
             }
 
-            // --- REVISED ENDPOINT LOGIC ---
-	let endpoint;
-	if (currentMode === 'jpg-to-pdf') {
-    		endpoint = '/convert/jpg-to-pdf';
-	} else if (['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf'].includes(currentMode)) {
-    		endpoint = '/convert/office-to-pdf';           // ← changed
-	} else if (currentMode === 'html-to-pdf') {
-    		endpoint = '/convert/html-to-pdf';
-	} else {
-    		endpoint = `/${currentMode}`;
-	}
+            // Route logic matching the new backend:
+            // If it's a conversion, route to /convert/type-to-pdf
+            // Otherwise, route to /merge-pdf or /split-pdf
+            let route;
+            if (currentMode.includes('convert')) {
+                const type = currentMode.split('-')[0]; // gets 'jpg', 'office', or 'html'
+                route = `/convert/${type}-to-pdf`;
+            } else {
+                route = `/${currentMode}`;
+            }
 
-            // Ensure no double slashes in URL
-            const finalUrl = `${BASE_URL.replace(/\/$/, '')}${endpoint}`;
-            console.log(`Sending request to: ${finalUrl}`);
+            const finalUrl = `${BASE_URL.replace(/\/$/, '')}${route}`;
 
             try {
-                progBar.style.width = "60%";
-                status.innerText = "Processing on server (this may take a moment for Office files)...";
-
                 const response = await fetch(finalUrl, {
                     method: 'POST',
                     body: formData
@@ -271,32 +265,22 @@
 
                 if (response.ok) {
                     progBar.style.width = "100%";
-                    status.innerText = "Downloading result...";
-                    
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    // Dynamic filename based on tool
-                    const downloadName = `${currentMode.replace(/-/g, '_')}_result.pdf`;
-                    a.download = downloadName;
+                    a.download = `${currentMode}_result.pdf`;
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
                     window.URL.revokeObjectURL(url);
-
-                    progContainer.classList.add('hidden');
                     successSection.classList.remove('hidden');
                 } else {
-                    // Try to parse error message from backend
                     const errorData = await response.json().catch(() => ({}));
-                    const errorMsg = errorData.detail || "Task failed.";
-                    status.innerText = `Error: ${errorMsg}`;
-                    console.error("Server Error Response:", errorData);
+                    status.innerText = `Error: ${errorData.detail || "Task failed"}`;
                 }
             } catch (error) {
                 status.innerText = "Error: Could not connect to server.";
-                console.error("Fetch Connection Error:", error);
             } finally {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50');
