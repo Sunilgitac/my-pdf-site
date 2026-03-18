@@ -168,42 +168,63 @@
     }
 
 async function processFiles() {
-        const fileInput = document.getElementById('fileInput');
-        const btn = document.getElementById('actionBtn');
-        const bar = document.getElementById('progressBar');
-        if (fileInput.files.length === 0) return alert("Select a file!");
+    const fileInput = document.getElementById('fileInput');
+    const btn = document.getElementById('actionBtn');
+    const bar = document.getElementById('progressBar');
+    if (fileInput.files.length === 0) return alert("Select a file!");
 
-        // Start progress animation
-        btn.disabled = true;
-        document.getElementById('progressContainer').classList.remove('hidden');
-        bar.style.width = '50%'; 
-        
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-
-        const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
-        let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
-
-        try {
-            const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
-            if (response.ok) {
-                bar.style.width = '100%';
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "converted.pdf";
-                a.click();
-                document.getElementById('successSection').classList.remove('hidden');
-            } else {
-                alert("Conversion failed.");
-            }
-        } catch (error) {
-            alert("Connection error.");
-        } finally {
-            btn.disabled = false;
+    btn.disabled = true;
+    document.getElementById('progressContainer').classList.remove('hidden');
+    bar.style.width = '50%'; 
+    
+    const formData = new FormData();
+    
+    // Check if we are merging (needs multiple files)
+    if (currentMode === 'merge-pdf') {
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('files', fileInput.files[i]);
         }
+    } else {
+        formData.append('file', fileInput.files[0]);
     }
+
+    const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
+    let route;
+    if (officeModes.includes(currentMode)) {
+        route = '/convert/office-to-pdf';
+    } else if (currentMode === 'jpg-to-pdf') {
+        route = '/convert/jpg-to-pdf';
+    } else {
+        route = `/${currentMode}`; // For /merge-pdf and /split-pdf
+    }
+
+    try {
+        const response = await fetch(`${BASE_URL}${route}`, { 
+            method: 'POST', 
+            body: formData 
+        });
+
+        if (response.ok) {
+            bar.style.width = '100%';
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentMode.replace(/-/g, '_') + ".pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            document.getElementById('successSection').classList.remove('hidden');
+        } else {
+            const errorData = await response.json();
+            alert("Error: " + (errorData.detail || "Conversion failed."));
+        }
+    } catch (error) {
+        alert("Connection error: Make sure the server is running.");
+    } finally {
+        btn.disabled = false;
+    }
+}
 
    </script>
 </body>
