@@ -31,6 +31,7 @@ app.add_middleware(
 )
 
 # --- Helper Functions ---
+# FIXED: This function is now used by all routes to prevent "NameErrors"
 def cleanup(path: str):
     try:
         if os.path.exists(path):
@@ -44,7 +45,7 @@ def convert_to_pdf_helper(input_path: str, output_dir: str):
 
 # --- API Routes ---
 
-# OFFICE TO PDF (Kept exactly as requested)
+# OFFICE TO PDF (Unchanged as requested)
 @app.post("/convert/office-to-pdf")
 async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     if not LO_BINARY: raise HTTPException(status_code=503, detail="PDF engine missing")
@@ -65,7 +66,7 @@ async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadF
         cleanup(in_path); cleanup(out_dir)
         raise HTTPException(status_code=500, detail=str(e))
 
-# FIXED: JPG TO PDF
+# JPG TO PDF (Updated cleanup call)
 @app.post("/convert/jpg-to-pdf")
 async def convert_image(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     unique_id = str(uuid.uuid4())
@@ -91,23 +92,26 @@ async def convert_image(background_tasks: BackgroundTasks, file: UploadFile = Fi
         cleanup(img_path)
         raise HTTPException(status_code=500, detail=str(e))
 
-# FIXED: MERGE PDF
+# FIXED: MERGE PDF (Accepts a list of files)
 @app.post("/merge-pdf")
 async def merge_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
     try:
         merger = PdfWriter()
         for file in files:
             merger.append(file.file)
+        
         output_path = f"merged_{uuid.uuid4()}.pdf"
         with open(output_path, "wb") as f:
             merger.write(f)
         merger.close()
+        
         background_tasks.add_task(cleanup, output_path)
         return FileResponse(output_path, filename="merged_document.pdf")
     except Exception as e:
+        logger.error(f"Merge error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# FIXED: SPLIT PDF
+# SPLIT PDF (Updated cleanup call)
 @app.post("/split-pdf")
 async def split_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     try:

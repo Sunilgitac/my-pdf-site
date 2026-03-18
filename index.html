@@ -167,11 +167,16 @@
         document.getElementById('actionBtn').disabled = false;
     }
 
+
 async function processFiles() {
     const fileInput = document.getElementById('fileInput');
     const btn = document.getElementById('actionBtn');
     const bar = document.getElementById('progressBar');
-    if (fileInput.files.length === 0) return alert("Select a file!");
+    
+    if (fileInput.files.length === 0) return alert("Select at least one file!");
+    if (currentMode === 'merge-pdf' && fileInput.files.length < 2) {
+        return alert("Please select two or more PDF files to merge.");
+    }
 
     btn.disabled = true;
     document.getElementById('progressContainer').classList.remove('hidden');
@@ -179,7 +184,7 @@ async function processFiles() {
     
     const formData = new FormData();
     
-    // Check if we are merging (needs multiple files)
+    // FIXED: Loop through all selected files if merging
     if (currentMode === 'merge-pdf') {
         for (let i = 0; i < fileInput.files.length; i++) {
             formData.append('files', fileInput.files[i]);
@@ -189,14 +194,10 @@ async function processFiles() {
     }
 
     const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
-    let route;
-    if (officeModes.includes(currentMode)) {
-        route = '/convert/office-to-pdf';
-    } else if (currentMode === 'jpg-to-pdf') {
-        route = '/convert/jpg-to-pdf';
-    } else {
-        route = `/${currentMode}`; // For /merge-pdf and /split-pdf
-    }
+    let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
+    
+    // Ensure JPG tool uses the correct path
+    if (currentMode === 'jpg-to-pdf') route = '/convert/jpg-to-pdf';
 
     try {
         const response = await fetch(`${BASE_URL}${route}`, { 
@@ -217,10 +218,10 @@ async function processFiles() {
             document.getElementById('successSection').classList.remove('hidden');
         } else {
             const errorData = await response.json();
-            alert("Error: " + (errorData.detail || "Conversion failed."));
+            alert("Error: " + (errorData.detail || "Operation failed."));
         }
     } catch (error) {
-        alert("Connection error: Make sure the server is running.");
+        alert("Connection error. Please check if the backend is live.");
     } finally {
         btn.disabled = false;
     }
