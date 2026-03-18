@@ -1,7 +1,1 @@
-[phases.build]
-cmds = [
-    "python -m pip install -r requirements.txt",
-    "echo '--- FILESYSTEM CHECK ---'",
-    "which soffice || echo 'soffice not found'",
-    "find /nix/store -name libreoffice 2>/dev/null || echo 'LibreOffice directory not found'"
-]
+
