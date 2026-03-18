@@ -68,7 +68,32 @@ async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadF
 
 # Placeholder routes for other buttons to prevent 404s
 @app.post("/convert/jpg-to-pdf")
-async def jpg_to_pdf(): return {"error": "Not implemented"}
+async def convert_image(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    unique_id = str(uuid.uuid4())
+    img_path = f"input_{unique_id}.jpg"
+    pdf_path = f"output_{unique_id}.pdf"
+
+    try:
+        with open(img_path, "wb") as f:
+            f.write(await file.read())
+
+        doc = fitz.open() 
+        img = fitz.open(img_path)
+        pdfbytes = img.convert_to_pdf()
+        img.close()
+
+        img_pdf = fitz.open("pdf", pdfbytes)
+        page = doc.new_page(width=img_pdf[0].rect.width, height=img_pdf[0].rect.height)
+        page.show_pdf_page(img_pdf[0].rect, img_pdf, 0)
+        doc.save(pdf_path)
+        doc.close()
+
+        #background_tasks.add_task(remove_file, img_path)
+        #background_tasks.add_task(remove_file, pdf_path)
+        return FileResponse(pdf_path, filename="converted.pdf")
+    except Exception as e:
+        logger.error(f"JPG conversion error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/merge-pdf")
 async def merge_pdf(): return {"error": "Not implemented"}
