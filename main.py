@@ -31,7 +31,6 @@ app.add_middleware(
 )
 
 # --- Helper Functions ---
-# FIXED: This function is now used by all routes to prevent "NameErrors"
 def cleanup(path: str):
     try:
         if os.path.exists(path):
@@ -45,7 +44,7 @@ def convert_to_pdf_helper(input_path: str, output_dir: str):
 
 # --- API Routes ---
 
-# OFFICE TO PDF (Unchanged as requested)
+# OFFICE TO PDF (Unchanged)
 @app.post("/convert/office-to-pdf")
 async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     if not LO_BINARY: raise HTTPException(status_code=503, detail="PDF engine missing")
@@ -66,7 +65,7 @@ async def convert_office_to_pdf(background_tasks: BackgroundTasks, file: UploadF
         cleanup(in_path); cleanup(out_dir)
         raise HTTPException(status_code=500, detail=str(e))
 
-# JPG TO PDF (Updated cleanup call)
+# JPG TO PDF (Unchanged)
 @app.post("/convert/jpg-to-pdf")
 async def convert_image(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     unique_id = str(uuid.uuid4())
@@ -92,11 +91,12 @@ async def convert_image(background_tasks: BackgroundTasks, file: UploadFile = Fi
         cleanup(img_path)
         raise HTTPException(status_code=500, detail=str(e))
 
-# FIXED: MERGE PDF (Accepts a list of files)
+# --- FIXED: MERGE PDF (Accepts list of files) ---
 @app.post("/merge-pdf")
 async def merge_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
     try:
         merger = PdfWriter()
+        # Loop through all uploaded files
         for file in files:
             merger.append(file.file)
         
@@ -111,7 +111,7 @@ async def merge_pdf(background_tasks: BackgroundTasks, files: List[UploadFile] =
         logger.error(f"Merge error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# SPLIT PDF (Updated cleanup call)
+# SPLIT PDF (Unchanged)
 @app.post("/split-pdf")
 async def split_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     try:

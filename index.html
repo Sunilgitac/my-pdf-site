@@ -158,6 +158,16 @@
         const input = document.getElementById('fileInput');
 
         title.innerText = mode.replace(/-/g, ' ').toUpperCase();
+        
+        // --- FIXED: ALLOW MULTIPLE FILE SELECTION FOR MERGE ---
+        if (mode === 'merge-pdf') {
+            input.setAttribute('multiple', '');
+            desc.innerText = "Select two or more PDF files to combine them into one. (Hold Ctrl or Command to select multiple)";
+        } else {
+            input.removeAttribute('multiple');
+            desc.innerText = "Select a file to begin the conversion.";
+        }
+        
         input.accept = mode.includes('merge') || mode.includes('split') ? ".pdf" : ".*";
     }
 
@@ -165,68 +175,76 @@
         document.getElementById('progressContainer').classList.add('hidden');
         document.getElementById('successSection').classList.add('hidden');
         document.getElementById('actionBtn').disabled = false;
+        document.getElementById('fileInput').value = '';
     }
 
-
-async function processFiles() {
-    const fileInput = document.getElementById('fileInput');
-    const btn = document.getElementById('actionBtn');
-    const bar = document.getElementById('progressBar');
-    
-    if (fileInput.files.length === 0) return alert("Select at least one file!");
-    if (currentMode === 'merge-pdf' && fileInput.files.length < 2) {
-        return alert("Please select two or more PDF files to merge.");
-    }
-
-    btn.disabled = true;
-    document.getElementById('progressContainer').classList.remove('hidden');
-    bar.style.width = '50%'; 
-    
-    const formData = new FormData();
-    
-    // FIXED: Loop through all selected files if merging
-    if (currentMode === 'merge-pdf') {
-        for (let i = 0; i < fileInput.files.length; i++) {
-            formData.append('files', fileInput.files[i]);
+    async function processFiles() {
+        const fileInput = document.getElementById('fileInput');
+        const btn = document.getElementById('actionBtn');
+        const bar = document.getElementById('progressBar');
+        
+        if (fileInput.files.length === 0) {
+            return alert("Please select a file first!");
         }
-    } else {
-        formData.append('file', fileInput.files[0]);
-    }
 
-    const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
-    let route = officeModes.includes(currentMode) ? '/convert/office-to-pdf' : `/${currentMode}`;
-    
-    // Ensure JPG tool uses the correct path
-    if (currentMode === 'jpg-to-pdf') route = '/convert/jpg-to-pdf';
+        // Logic for Merge Tool validation
+        if (currentMode === 'merge-pdf' && fileInput.files.length < 2) {
+            return alert("Please select 2 or more files to merge. (Hold Ctrl or Command key while clicking files)");
+        }
 
-    try {
-        const response = await fetch(`${BASE_URL}${route}`, { 
-            method: 'POST', 
-            body: formData 
-        });
-
-        if (response.ok) {
-            bar.style.width = '100%';
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = currentMode.replace(/-/g, '_') + ".pdf";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            document.getElementById('successSection').classList.remove('hidden');
+        btn.disabled = true;
+        document.getElementById('progressContainer').classList.remove('hidden');
+        bar.style.width = '50%'; 
+        
+        const formData = new FormData();
+        
+        // --- FIXED LOGIC FOR MERGE CONNECTIVITY ---
+        if (currentMode === 'merge-pdf') {
+            // Sends all selected files under the 'files' key
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('files', fileInput.files[i]);
+            }
         } else {
-            const errorData = await response.json();
-            alert("Error: " + (errorData.detail || "Operation failed."));
+            // For single file tools
+            formData.append('file', fileInput.files[0]);
         }
-    } catch (error) {
-        alert("Connection error. Please check if the backend is live.");
-    } finally {
-        btn.disabled = false;
-    }
-}
 
+        const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
+        let route;
+        if (officeModes.includes(currentMode)) {
+            route = '/convert/office-to-pdf';
+        } else if (currentMode === 'jpg-to-pdf') {
+            route = '/convert/jpg-to-pdf';
+        } else {
+            route = `/${currentMode}`; 
+        }
+
+        try {
+            const response = await fetch(`${BASE_URL}${route}`, { 
+                method: 'POST', 
+                body: formData 
+            });
+
+            if (response.ok) {
+                bar.style.width = '100%';
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentMode.replace('-', '_') + "_result.pdf";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                document.getElementById('successSection').classList.remove('hidden');
+            } else {
+                alert("Task failed on server. Ensure files are valid.");
+            }
+        } catch (error) {
+            alert("Connection error. Check if your Railway backend is active.");
+        } finally {
+            btn.disabled = false;
+        }
+    }
    </script>
 </body>
 </html>
