@@ -35,15 +35,12 @@ def cleanup(path: str):
         if os.path.isfile(path): os.remove(path)
         else: shutil.rmtree(path, ignore_errors=True)
 
-
-# --- UPDATED: PDF TO OFFICE CONVERSION LOGIC ---
-
 async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_tasks: BackgroundTasks):
     uid = str(uuid.uuid4())
-    in_path = f"in_{uid}.pdf"
-    out_dir = f"out_{uid}"
-    # Create a unique profile directory for this specific conversion to prevent crashes
-    profile_dir = f"profile_{uid}" 
+    in_path = f"/tmp/in_{uid}.pdf"
+    out_dir = f"/tmp/out_{uid}"
+    # Use /tmp for the profile directory to ensure write permissions
+    profile_dir = f"/tmp/profile_{uid}" 
     
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(profile_dir, exist_ok=True)
@@ -51,6 +48,7 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
     with open(in_path, "wb") as f:
         f.write(await file.read())
     
+    # Simplified filters that are more robust in headless environments
     filters = {
         "docx": "MS Word 2007 XML",
         "xlsx": "Calc MS Excel 2007 XML",
@@ -60,12 +58,15 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
     filter_name = filters.get(target_ext)
     
     try:
-        # Added -env:UserInstallation to provide a private workspace for LibreOffice
-        # This fixes 'Unspecified Application Error' by avoiding profile locking
+        # Changed profile path to use /tmp/ and simplified the command
         cmd = [
             LO_BINARY,
-            "-env:UserInstallation=file:///app/" + profile_dir,
+            f"-env:UserInstallation=file://{profile_dir}",
             "--headless",
+            "--invisible",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--nologo",
             "--infilter=writer_pdf_import", 
             "--convert-to", f"{target_ext}:{filter_name}",
             "--outdir", out_dir,
@@ -73,19 +74,19 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
         ]
         
         logger.info(f"Executing: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        # Use a timeout to prevent the process from hanging indefinitely
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         
         if result.returncode != 0:
             logger.error(f"LibreOffice Error: {result.stderr}")
-            raise Exception(f"LibreOffice failed: {result.stderr}")
+            raise Exception(f"LibreOffice failed with code {result.returncode}: {result.stderr}")
 
         generated_files = os.listdir(out_dir)
         if not generated_files:
-            raise Exception("LibreOffice did not produce an output file.")
+            raise Exception("LibreOffice execution finished but no file was created.")
             
         out_path = os.path.join(out_dir, generated_files[0])
         
-        # Schedule cleanup of input, output, and the temporary profile directory
         background_tasks.add_task(cleanup, in_path)
         background_tasks.add_task(cleanup, out_dir)
         background_tasks.add_task(cleanup, profile_dir)
@@ -96,11 +97,13 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
             media_type="application/octet-stream"
         )
         
+    except subprocess.TimeoutExpired:
+        logger.error("LibreOffice conversion timed out.")
+        cleanup(in_path); cleanup(out_dir); cleanup(profile_dir)
+        raise HTTPException(status_code=504, detail="Conversion timed out.")
     except Exception as e:
         logger.error(f"Conversion failed: {str(e)}")
-        cleanup(in_path)
-        cleanup(out_dir)
-        cleanup(profile_dir)
+        cleanup(in_path); cleanup(out_dir); cleanup(profile_dir)
         raise HTTPException(status_code=500, detail=f"Internal Conversion Error: {str(e)}")
 
 # --- ROUTES ---
