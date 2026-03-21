@@ -8,8 +8,6 @@
     <style>
         .tool-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
         .hidden { display: none; }
-        
-        /* Dark Mode Colors */
         .dark-mode { background-color: #121212; color: #ffffff; }
         .dark-mode .bg-white { background-color: #1e1e1e; color: #ffffff; border-color: #333; }
         .dark-mode .text-gray-900 { color: #f3f4f6; }
@@ -23,10 +21,9 @@
     <nav class="bg-indigo-600 p-4 text-white flex justify-between items-center shadow-lg mb-8">
         <div class="font-bold text-2xl tracking-tight cursor-pointer" onclick="showHome()">PDF Suite</div>
         <div class="flex items-center">
-            <button onclick="toggleDarkMode()" class="mr-4 p-2 rounded-full hover:bg-indigo-700 transition text-xl" title="Toggle Dark Mode">
+            <button onclick="toggleDarkMode()" class="mr-4 p-2 rounded-full hover:bg-indigo-700 transition text-xl">
                 <span id="themeIcon">🌙</span>
             </button>
-            
             <div class="relative group">
                 <button class="bg-indigo-700 px-5 py-2 rounded-full font-medium hover:bg-indigo-800 transition flex items-center gap-2">
                     Tools <span class="text-xs">▼</span>
@@ -34,217 +31,146 @@
                 <div class="absolute right-0 mt-2 w-64 bg-white text-gray-800 rounded-xl shadow-2xl hidden group-hover:block z-50 overflow-hidden border border-gray-100">
                     <a href="#" onclick="showTool('jpg-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">🖼️ JPG to PDF</a>
                     <a href="#" onclick="showTool('word-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📄 Word to PDF</a>
-                    <a href="#" onclick="showTool('excel-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📊 Excel to PDF</a>
-                    <a href="#" onclick="showTool('ppt-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📽️ PPT to PDF</a>
-                    <a href="#" onclick="showTool('html-to-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">🌐 HTML to PDF</a>
                     <a href="#" onclick="showTool('merge-pdf')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📑 Merge PDF</a>
-                    <a href="#" onclick="showTool('split-pdf')" class="block px-4 py-3 hover:bg-indigo-50">✂️ Split PDF</a>
+                    <a href="#" onclick="showTool('pdf-to-jpg')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📸 PDF to JPG</a>
+                    <a href="#" onclick="showTool('pdf-to-word')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📝 PDF to Word</a>
+                    <a href="#" onclick="showTool('pdf-to-excel')" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-50">📉 PDF to Excel</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto px-4 pb-12">
-        
-        <div id="homePage" class="max-w-5xl mx-auto">
+        <div id="homePage" class="max-w-6xl mx-auto">
             <div class="text-center mb-10">
-                <h1 class="text-4xl font-extrabold text-gray-900 mb-2">What would you like to do?</h1>
-                <p class="text-gray-600">Fast, secure, and easy-to-use PDF tools right in your browser.</p>
+                <h1 class="text-4xl font-extrabold text-gray-900 mb-2">PDF Converter & Tools</h1>
+                <p class="text-gray-600">Select a tool below to manage your documents.</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <div onclick="showTool('jpg-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-indigo-500">
                     <div class="text-4xl mb-4">🖼️</div>
                     <h3 class="font-bold text-lg mb-2">JPG to PDF</h3>
-                    <p class="text-xs text-gray-500">Convert images to PDF.</p>
                 </div>
-
                 <div onclick="showTool('word-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-blue-600">
                     <div class="text-4xl mb-4">📄</div>
                     <h3 class="font-bold text-lg mb-2">Word to PDF</h3>
-                    <p class="text-xs text-gray-500">Convert .docx to PDF.</p>
                 </div>
-
-                <div onclick="showTool('excel-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-green-600">
-                    <div class="text-4xl mb-4">📊</div>
-                    <h3 class="font-bold text-lg mb-2">Excel to PDF</h3>
-                    <p class="text-xs text-gray-500">Convert .xlsx to PDF.</p>
-                </div>
-
-                <div onclick="showTool('ppt-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-orange-500">
-                    <div class="text-4xl mb-4">📽️</div>
-                    <h3 class="font-bold text-lg mb-2">PPT to PDF</h3>
-                    <p class="text-xs text-gray-500">Convert .pptx to PDF.</p>
-                </div>
-
-                <div onclick="showTool('html-to-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-pink-500">
-                    <div class="text-4xl mb-4">🌐</div>
-                    <h3 class="font-bold text-lg mb-2">HTML to PDF</h3>
-                    <p class="text-xs text-gray-500">Convert .html to PDF.</p>
-                </div>
-
                 <div onclick="showTool('merge-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-green-400">
                     <div class="text-4xl mb-4">📑</div>
                     <h3 class="font-bold text-lg mb-2">Merge PDF</h3>
-                    <p class="text-xs text-gray-500">Combine multiple PDFs.</p>
                 </div>
 
-                <div onclick="showTool('split-pdf')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-red-500">
-                    <div class="text-4xl mb-4">✂️</div>
-                    <h3 class="font-bold text-lg mb-2">Split PDF</h3>
-                    <p class="text-xs text-gray-500">Extract page 1 from PDF.</p>
+                <div onclick="showTool('pdf-to-jpg')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-yellow-500">
+                    <div class="text-4xl mb-4">📸</div>
+                    <h3 class="font-bold text-lg mb-2">PDF to JPG</h3>
+                </div>
+                <div onclick="showTool('pdf-to-word')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-blue-400">
+                    <div class="text-4xl mb-4">📝</div>
+                    <h3 class="font-bold text-lg mb-2">PDF to Word</h3>
+                </div>
+                <div onclick="showTool('pdf-to-excel')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-green-700">
+                    <div class="text-4xl mb-4">📉</div>
+                    <h3 class="font-bold text-lg mb-2">PDF to Excel</h3>
+                </div>
+                <div onclick="showTool('pdf-to-ppt')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-orange-600">
+                    <div class="text-4xl mb-4">📽️</div>
+                    <h3 class="font-bold text-lg mb-2">PDF to PPT</h3>
+                </div>
+                <div onclick="showTool('pdf-to-html')" class="tool-card bg-white p-6 rounded-2xl shadow-md cursor-pointer text-center border-t-4 border-pink-400">
+                    <div class="text-4xl mb-4">🌐</div>
+                    <h3 class="font-bold text-lg mb-2">PDF to HTML</h3>
                 </div>
             </div>
         </div>
 
         <div id="converterUI" class="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-2xl text-center hidden">
-            <button onclick="showHome()" class="text-indigo-600 text-sm mb-4 hover:underline">← Back to Dashboard</button>
+            <button onclick="showHome()" class="text-indigo-600 text-sm mb-4 hover:underline">← Back</button>
             <h1 id="toolTitle" class="text-3xl font-bold text-gray-900 mb-4">Tool</h1>
             <p id="toolDesc" class="text-gray-600 mb-6">Description.</p>
-
             <input type="file" id="fileInput" class="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-
-            <button onclick="processFiles()" id="actionBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 w-full shadow-lg transition transform active:scale-95">
-                Convert Now
-            </button>
-
+            <button onclick="processFiles()" id="actionBtn" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 w-full shadow-lg transition transform active:scale-95">Convert Now</button>
+            
             <div id="progressContainer" class="mt-8 hidden">
                 <div class="w-full bg-gray-100 rounded-full h-3">
                     <div id="progressBar" class="bg-indigo-600 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
-                <p id="status" class="mt-3 text-sm text-gray-500 font-medium italic">Processing...</p>
-            </div>
-
-            <div id="successSection" class="mt-6 hidden flex-col items-center">
-                <div class="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                    <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <p class="text-green-600 font-bold text-lg">Task Complete!</p>
-                <button onclick="showHome()" class="mt-4 text-indigo-600 text-sm font-semibold underline">Done</button>
+                <p id="status" class="mt-3 text-sm text-gray-500 italic">Processing...</p>
             </div>
         </div>
     </div>
 
 <script>
     let currentMode = 'jpg-to-pdf';
-    const BASE_URL = 'https://my-pdf-site-production.up.railway.app';
+    const BASE_URL = 'https://my-pdf-site-production.up.railway.app'; // Replace with your actual Railway URL
 
     function toggleDarkMode() {
-        const body = document.body;
-        const icon = document.getElementById('themeIcon');
-        body.classList.toggle('dark-mode');
-        icon.innerText = body.classList.contains('dark-mode') ? "☀️" : "🌙";
-        localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+        document.body.classList.toggle('dark-mode');
     }
-
-    if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
 
     function showHome() {
         document.getElementById('homePage').classList.remove('hidden');
         document.getElementById('converterUI').classList.add('hidden');
-        resetUI();
     }
 
     function showTool(mode) {
         currentMode = mode;
         document.getElementById('homePage').classList.add('hidden');
         document.getElementById('converterUI').classList.remove('hidden');
-        resetUI();
+        document.getElementById('toolTitle').innerText = mode.replace(/-/g, ' ').toUpperCase();
         
-        const title = document.getElementById('toolTitle');
-        const desc = document.getElementById('toolDesc');
         const input = document.getElementById('fileInput');
-
-        title.innerText = mode.replace(/-/g, ' ').toUpperCase();
-        
-        // --- FIXED: ALLOW MULTIPLE FILE SELECTION FOR MERGE ---
         if (mode === 'merge-pdf') {
             input.setAttribute('multiple', '');
-            desc.innerText = "Select two or more PDF files to combine them into one. (Hold Ctrl or Command to select multiple)";
+            document.getElementById('toolDesc').innerText = "Select multiple PDFs to merge.";
         } else {
             input.removeAttribute('multiple');
-            desc.innerText = "Select a file to begin the conversion.";
+            document.getElementById('toolDesc').innerText = "Select a file to convert.";
         }
-        
-        input.accept = mode.includes('merge') || mode.includes('split') ? ".pdf" : ".*";
-    }
-
-    function resetUI() {
-        document.getElementById('progressContainer').classList.add('hidden');
-        document.getElementById('successSection').classList.add('hidden');
-        document.getElementById('actionBtn').disabled = false;
-        document.getElementById('fileInput').value = '';
     }
 
     async function processFiles() {
         const fileInput = document.getElementById('fileInput');
-        const btn = document.getElementById('actionBtn');
         const bar = document.getElementById('progressBar');
-        
-        if (fileInput.files.length === 0) {
-            return alert("Please select a file first!");
-        }
+        if (fileInput.files.length === 0) return alert("Select a file!");
 
-        // Logic for Merge Tool validation
-        if (currentMode === 'merge-pdf' && fileInput.files.length < 2) {
-            return alert("Please select 2 or more files to merge. (Hold Ctrl or Command key while clicking files)");
-        }
-
-        btn.disabled = true;
-        document.getElementById('progressContainer').classList.remove('hidden');
-        bar.style.width = '50%'; 
-        
         const formData = new FormData();
-        
-        // --- FIXED LOGIC FOR MERGE CONNECTIVITY ---
         if (currentMode === 'merge-pdf') {
-            // Sends all selected files under the 'files' key
-            for (let i = 0; i < fileInput.files.length; i++) {
-                formData.append('files', fileInput.files[i]);
-            }
+            for (let f of fileInput.files) formData.append('files', f);
         } else {
-            // For single file tools
             formData.append('file', fileInput.files[0]);
         }
 
-        const officeModes = ['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'];
-        let route;
-        if (officeModes.includes(currentMode)) {
+        document.getElementById('progressContainer').classList.remove('hidden');
+        bar.style.width = '40%';
+
+        // Determine correct endpoint
+        let route = `/${currentMode}`;
+        if (['word-to-pdf', 'excel-to-pdf', 'ppt-to-pdf', 'html-to-pdf'].includes(currentMode)) {
             route = '/convert/office-to-pdf';
-        } else if (currentMode === 'jpg-to-pdf') {
-            route = '/convert/jpg-to-pdf';
-        } else {
-            route = `/${currentMode}`; 
         }
 
         try {
-            const response = await fetch(`${BASE_URL}${route}`, { 
-                method: 'POST', 
-                body: formData 
-            });
-
+            const response = await fetch(`${BASE_URL}${route}`, { method: 'POST', body: formData });
             if (response.ok) {
                 bar.style.width = '100%';
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = currentMode.replace('-', '_') + "_result.pdf";
-                document.body.appendChild(a);
+                // Get correct extension based on mode
+                let ext = "pdf";
+                if (currentMode === 'pdf-to-jpg') ext = "jpg";
+                if (currentMode === 'pdf-to-word') ext = "docx";
+                if (currentMode === 'pdf-to-excel') ext = "xlsx";
+                if (currentMode === 'pdf-to-ppt') ext = "pptx";
+                if (currentMode === 'pdf-to-html') ext = "html";
+
+                a.download = `result.${ext}`;
                 a.click();
-                a.remove();
-                document.getElementById('successSection').classList.remove('hidden');
-            } else {
-                alert("Task failed on server. Ensure files are valid.");
-            }
-        } catch (error) {
-            alert("Connection error. Check if your Railway backend is active.");
-        } finally {
-            btn.disabled = false;
-        }
+            } else { alert("Server Error"); }
+        } catch (e) { alert("Connection Error"); }
     }
-   </script>
+</script>
 </body>
 </html>
