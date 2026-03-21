@@ -42,14 +42,15 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
     uid = str(uuid.uuid4())
     in_path = f"in_{uid}.pdf"
     out_dir = f"out_{uid}"
-    os.makedirs(out_dir, exist_ok=True)
+    # Create a unique profile directory for this specific conversion to prevent crashes
+    profile_dir = f"profile_{uid}" 
     
-    # Write the uploaded PDF to disk
+    os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(profile_dir, exist_ok=True)
+    
     with open(in_path, "wb") as f:
         f.write(await file.read())
     
-    # Mapping extensions to specific LibreOffice Export Filters
-    # This prevents the "no export filter" error
     filters = {
         "docx": "MS Word 2007 XML",
         "xlsx": "Calc MS Excel 2007 XML",
@@ -59,10 +60,11 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
     filter_name = filters.get(target_ext)
     
     try:
-        # 1. We force '--infilter=writer_pdf_import' so it treats the PDF as text
-        # 2. We use 'extension:filter_name' to specify the exact output format
+        # Added -env:UserInstallation to provide a private workspace for LibreOffice
+        # This fixes 'Unspecified Application Error' by avoiding profile locking
         cmd = [
             LO_BINARY,
+            "-env:UserInstallation=file:///app/" + profile_dir,
             "--headless",
             "--infilter=writer_pdf_import", 
             "--convert-to", f"{target_ext}:{filter_name}",
@@ -77,16 +79,16 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
             logger.error(f"LibreOffice Error: {result.stderr}")
             raise Exception(f"LibreOffice failed: {result.stderr}")
 
-        # Locate the resulting file in the output directory
         generated_files = os.listdir(out_dir)
         if not generated_files:
             raise Exception("LibreOffice did not produce an output file.")
             
         out_path = os.path.join(out_dir, generated_files[0])
         
-        # Schedule cleanup
+        # Schedule cleanup of input, output, and the temporary profile directory
         background_tasks.add_task(cleanup, in_path)
         background_tasks.add_task(cleanup, out_dir)
+        background_tasks.add_task(cleanup, profile_dir)
         
         return FileResponse(
             out_path, 
@@ -98,6 +100,7 @@ async def pdf_to_office_logic(file: UploadFile, target_ext: str, background_task
         logger.error(f"Conversion failed: {str(e)}")
         cleanup(in_path)
         cleanup(out_dir)
+        cleanup(profile_dir)
         raise HTTPException(status_code=500, detail=f"Internal Conversion Error: {str(e)}")
 
 # --- ROUTES ---
