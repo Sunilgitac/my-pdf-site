@@ -9,6 +9,18 @@ from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pypdf import PdfReader, PdfWriter
+from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse, HTMLResponse # <-- Added HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+# (keep all other imports and setup code the same)
+
+# SERVE FRONTEND UI
+@app.get("/", response_class=HTMLResponse)
+async def serve_home():
+    if os.path.exists("index.html"):
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    return "index.html not found", 404
 
 # --- Setup & Configuration ---
 logging.basicConfig(level=logging.INFO)
