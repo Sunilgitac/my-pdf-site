@@ -6,8 +6,9 @@ import logging
 import subprocess
 from typing import List
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pypdf import PdfReader, PdfWriter
 
 # --- Setup & Configuration ---
@@ -43,14 +44,6 @@ def convert_to_pdf_helper(input_path: str, output_dir: str):
     subprocess.run(command, capture_output=True, text=True, check=True)
 
 # --- API Routes ---
-
-# SERVE FRONTEND UI
-@app.get("/", response_class=HTMLResponse)
-async def serve_home():
-    if os.path.exists("index.html"):
-        with open("index.html", "r", encoding="utf-8") as f:
-            return f.read()
-    return "index.html not found", 404
 
 # OFFICE TO PDF
 @app.post("/convert/office-to-pdf")
@@ -133,3 +126,6 @@ async def split_pdf(background_tasks: BackgroundTasks, file: UploadFile = File(.
         return FileResponse(output_path, filename="split_page_1.pdf")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# MOUNT FRONTEND DIRECTORY AT THE VERY END
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
